@@ -10,7 +10,7 @@
     "server": "cd server && npm run dev",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "predeploy": "npm run build",
+    "predeploy": "tsc && vite build --base=/workorderonline/ && cd server && npm run build",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {

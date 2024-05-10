@@ -7,7 +7,7 @@ import { Login } from "./pages";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.VITE_BASE_URL}>
       <Routes>
         <Route path="login" element={<Login />} />
         <Route path="" element={<App />} />
