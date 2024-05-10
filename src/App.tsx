@@ -38,7 +38,7 @@ const App: React.FC = () => {
     else {
       const { nickname } = userInfo
       if (nickname === "主任") {
-        getAllWorkOrders("123456").then((res) => {
+        getAllWorkOrders().then((res) => {
           if (res.status === 200) {
             res.json().then((json) => {
               const keys = Object.keys(json.data);
