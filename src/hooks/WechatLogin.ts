@@ -1,21 +1,25 @@
 import { useState } from "react";
-import { loginWechatUser } from "../utils/api";
+import { ITokenRspModel } from "../models/Login/ITokenRspModel";
+import { IUserRspModel } from "../models/User/IUserRspModel";
+import { getMe, loginWechatUser } from "../utils/api";
 
 // 微信登录hook
 export const useWeChatLogin = ()=> {
   const [isLoading, setIsLoading] = useState(false);
-  const [loginError, setLoginError] = useState(null);
+  const [loginError, setLoginError] = useState<any>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userInfo, setUserInfo] = useState<any>(null);
+  const [userInfo, setUserInfo] = useState<Partial<IUserRspModel>>();
 
   const handleLogin = async (code: string) => {
     try {
       setIsLoading(true);
       setLoginError(null);
       const response = await loginWechatUser(code);
-      const data = await response.json();
+      const data = (await response.json()) as ITokenRspModel;
       if (data.success) {
-        setUserInfo(data.data);
+        sessionStorage.setItem("token", data.token);
+        const user = (await (await getMe()).json()).data as IUserRspModel;
+        setUserInfo(user);
         setIsLoggedIn(true);
       }
       else {
@@ -46,7 +50,7 @@ export const useWeChatLogin = ()=> {
   };
 
   const handleLogout = () => {
-    setUserInfo(null);
+    setUserInfo(undefined);
     setIsLoggedIn(false);
   };
 

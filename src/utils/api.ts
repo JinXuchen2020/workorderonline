@@ -9,12 +9,14 @@ const getUrl = (path: string) => {
   return path;
 };
 
+const token = sessionStorage.getItem("token");
+
 // route to get logged in user's info (needs the token)
-export const getMe = (token: string) => {
+export const getMe = () => {
   return fetch(getUrl('/api/users/me'), {
     headers: {
       "Content-Type": "application/json",
-      authorization: `Bearer ${token}`,
+      "Authorization": `Bearer ${token}`
     },
   });
 };
@@ -57,33 +59,33 @@ export const loginWechatUser = (code: string) => {
 };
 
 // save book data for a logged in user
-export const saveWorkOrders = (data: any, userName: string, _token: string) => {
+export const saveWorkOrders = (data: any, userName: string) => {
   return fetch(getUrl(`/api/workorders/${userName}`), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      // authorization: `Bearer ${token}`,
+      "Authorization": `Bearer ${token}`
     },
     body: JSON.stringify(data),
   });
 };
 
-export const getWorkOrders = (userName: string, _token: string) => {
+export const getWorkOrders = (userName: string) => {
   return fetch(getUrl(`/api/workorders/${userName}`), {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      // authorization: `Bearer ${token}`,
+      "Authorization": `Bearer ${token}`
     }
   });
 };
 
-export const getAllWorkOrders = (_token: string) => {
+export const getAllWorkOrders = () => {
   return fetch(getUrl(`/api/workorders`), {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      // authorization: `Bearer ${token}`,
+      "Authorization": `Bearer ${token}`
     }
   });
 };

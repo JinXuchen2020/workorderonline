@@ -44,7 +44,7 @@ const App: React.FC = () => {
               const keys = Object.keys(json.data);
               let result = json.data[keys[0]] as IWorkbookData;
               const { sheetOrder } = result
-              sheetOrder.forEach((sheetId) => {     
+              sheetOrder.forEach((sheetId: any) => {     
                 userRange.push({ userName: keys[0], sheetId: sheetId, startRow: 1, endRow: Object.keys(result.sheets[sheetId].cellData!).length - 1 });
                 //setUserRange([...userRange, { userName: keys[0], startRow: 1, endRow: Object.keys(result.sheets[sheetId].cellData!).length - 1 }])
                 keys.forEach((booKey, bookIndex) => {

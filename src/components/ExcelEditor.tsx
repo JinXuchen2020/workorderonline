@@ -145,10 +145,6 @@ export const UniverSheet = forwardRef<
           //setChangeCells([...changeCells, param]);
         }
       }
-      console.log(commandInfo, options);
-      if (userInfo?.nickname === "主任" && commandInfo.id === "save-excel-button") {
-        updatedCells.splice(0, updatedCells.length);
-      }
     });
 
   };

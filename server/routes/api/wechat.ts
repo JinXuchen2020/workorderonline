@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import { generateToken } from './token';
 const router = express.Router();
 
 const appId = process.env.WE_CHAT_CORP_ID;
@@ -69,7 +70,7 @@ router.get('/qrcode', (req : Request, res : Response) => {
   });
 });
 
-router.get('/authurl', async <T> (req : Request, res : Response) => {
+router.get('/authurl', (req : Request, res : Response) => {
   const data = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${appId}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_base&state=STATE#wechat_redirect`;
   res.json({
     data: data,
@@ -104,13 +105,16 @@ router.post('/login', async <T> (req : Request, res : Response) => {
   }
 
   const { nickname } = userInfo;
+  const payload = {
+    openid,
+    nickname,
+    expires_in
+  };
+
+  const token = generateToken(payload);
+
   res.json({
-    data: {
-      openid,
-      nickname,
-      access_token,
-      expires_in
-    },
+    data: token,
     code: 200,
     success: true,
     message: 'Successfully'

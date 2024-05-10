@@ -82,7 +82,7 @@ class SaveExcelButton extends Plugin {
           const updatedCells = this._config.updatedCells as IUpdatedCellProps[];
           if (updatedCells && updatedCells.length > 0) {
             Promise.all(updatedCells.map(async({ userName, subUnitId, cellValue }) => {
-              const workbook = (await (await getWorkOrders(userName, "123456")).json()).data as IWorkbookData;
+              const workbook = (await (await getWorkOrders(userName)).json()).data as IWorkbookData;
               const originCellData = workbook.sheets[subUnitId].cellData!;
               Object.keys(cellValue).forEach((rowKey: any) => {
                 Object.keys(cellValue[rowKey]).forEach((cellKey: any) => {
@@ -90,7 +90,7 @@ class SaveExcelButton extends Plugin {
                 });
               });
 
-              await saveWorkOrders(workbook, userName, "123456");
+              await saveWorkOrders(workbook, userName);
             })).then(() => {
               notificationService.show({
                 type: "success",
@@ -109,7 +109,7 @@ class SaveExcelButton extends Plugin {
           }
         }
         else {
-          saveWorkOrders(data, nickname, "").then(() => {
+          saveWorkOrders(data, nickname).then(() => {
             notificationService.show({
               type: "success",
               content: `用户：${nickname}工单保存成功`,
