@@ -72,8 +72,6 @@ class SaveExcelButton extends Plugin {
         // inject univer instance service
         const univer = accessor.get(IUniverInstanceService);
         const notificationService = accessor.get(INotificationService);
-        //const commandService = accessor.get(ICommandService);
-        // get current sheet
         const workbook = univer.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)!;
 
         const data = workbook.getSnapshot();
