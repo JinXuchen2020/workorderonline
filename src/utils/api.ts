@@ -9,10 +9,9 @@ const getUrl = (path: string) => {
   return path;
 };
 
-const token = sessionStorage.getItem("token");
-
 // route to get logged in user's info (needs the token)
 export const getMe = () => {
+  const token = sessionStorage.getItem("token");
   return fetch(getUrl('/api/users/me'), {
     headers: {
       "Content-Type": "application/json",
@@ -58,8 +57,19 @@ export const loginWechatUser = (code: string) => {
   });
 };
 
+export const loginTest = (data: any) => {
+  return fetch(getUrl(`/api/wechat/login-test`), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+};
+
 // save book data for a logged in user
 export const saveWorkOrders = (data: any, userName: string) => {
+  const token = sessionStorage.getItem("token");
   return fetch(getUrl(`/api/workorders/${userName}`), {
     method: "POST",
     headers: {
@@ -71,6 +81,7 @@ export const saveWorkOrders = (data: any, userName: string) => {
 };
 
 export const getWorkOrders = (userName: string) => {
+  const token = sessionStorage.getItem("token");
   return fetch(getUrl(`/api/workorders/${userName}`), {
     method: "GET",
     headers: {
@@ -81,6 +92,7 @@ export const getWorkOrders = (userName: string) => {
 };
 
 export const getAllWorkOrders = () => {
+  const token = sessionStorage.getItem("token");
   return fetch(getUrl(`/api/workorders`), {
     method: "GET",
     headers: {

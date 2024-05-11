@@ -6,7 +6,6 @@ import "@univerjs/sheets-formula/lib/index.css";
 import {
   ICellData,
   ICommandInfo,
-  IExecutionOptions,
   IObjectMatrixPrimitiveType,
   IWorkbookData,
   Univer,
@@ -111,7 +110,7 @@ export const UniverSheet = forwardRef<
     
     univerApiRef.current = FUniver.newAPI(univer);
     const workbookApi = univerApiRef.current.getActiveWorkbook();
-    workbookApi?.onCommandExecuted((commandInfo: Readonly<ICommandInfo>, options?: IExecutionOptions) => {
+    workbookApi?.onCommandExecuted((commandInfo: Readonly<ICommandInfo>) => {
       if (userInfo?.nickname === "主任" && commandInfo.id === "sheet.mutation.set-range-values") {
         if(sessionStorage.getItem("isUpdated") && sessionStorage.getItem("isUpdated") === "true") {
           updatedCells.splice(0, updatedCells.length);

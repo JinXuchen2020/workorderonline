@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { ITokenRspModel } from "../models/Login/ITokenRspModel";
-import { IUserRspModel } from "../models/User/IUserRspModel";
-import { getMe, loginWechatUser } from "../utils/api";
+import { IUserRspModel } from "../models";
+import { getMe, loginTest, loginWechatUser } from "../utils/api";
 
 // 微信登录hook
 export const useWeChatLogin = ()=> {
@@ -14,10 +13,9 @@ export const useWeChatLogin = ()=> {
     try {
       setIsLoading(true);
       setLoginError(null);
-      const response = await loginWechatUser(code);
-      const data = (await response.json()) as ITokenRspModel;
+      const data = (await (await loginWechatUser(code)).json());
       if (data.success) {
-        sessionStorage.setItem("token", data.token);
+        sessionStorage.setItem("token", data.data);
         const user = (await (await getMe()).json()).data as IUserRspModel;
         setUserInfo(user);
         setIsLoggedIn(true);
@@ -34,12 +32,24 @@ export const useWeChatLogin = ()=> {
     }
   };
 
-  const handleTempLogin = async (userName: string) => {
+  const handleTempLogin = async (option: any) => {
     try {
       setIsLoading(true);
       setLoginError(null);
-      setUserInfo({nickname: userName});
-      setIsLoggedIn(true);
+      const testUser ={
+        nickname: option.children,
+        openid: option.value
+      }
+      const tokenData = (await (await loginTest(testUser)).json());
+      if (tokenData.success) {
+        sessionStorage.setItem("token", tokenData.data);
+        const user = (await (await getMe()).json()).data as IUserRspModel;
+        setUserInfo(user);
+        setIsLoggedIn(true);
+      }
+      else {
+        setLoginError(tokenData.message);
+      }
     } 
     catch (error: any) {
       setLoginError(error);

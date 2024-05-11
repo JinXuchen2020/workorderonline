@@ -36,8 +36,8 @@ const App: React.FC = () => {
       }
     }
     else {
-      const { nickname } = userInfo
-      if (nickname === "主任") {
+      const { role, nickname } = userInfo!
+      if (role === "admin") {
         getAllWorkOrders().then((res) => {
           if (res.status === 200) {
             res.json().then((json) => {
@@ -69,7 +69,7 @@ const App: React.FC = () => {
         });
       }
       else {
-        getWorkOrders(nickname, "123456").then((res) => {
+        getWorkOrders(nickname!).then((res) => {
           if (res.status === 200) {
             res.json().then((json) => {
               setData(json.data);
@@ -85,7 +85,7 @@ const App: React.FC = () => {
         <Space>
           <ExcelImport callback={setData} />
           <ExcelExport workbook={univerRef.current} />
-          <Select onChange={(value) => handleTempLogin(value)} style={{ width: 120 }}>
+          <Select onChange={(_, Option) => handleTempLogin(Option)} style={{ width: 120 }}>
             <Select.Option value="用户1">用户1</Select.Option>
             <Select.Option value="用户2">用户2</Select.Option>
             <Select.Option value="用户3">用户3</Select.Option>

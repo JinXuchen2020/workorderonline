@@ -77,8 +77,8 @@ class SaveExcelButton extends Plugin {
         const workbook = univer.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)!;
 
         const data = workbook.getSnapshot();
-        const { nickname } = this._config.userInfo
-        if (nickname === "主任") {
+        const { role, nickname } = this._config.userInfo
+        if (role === "admin") {
           const updatedCells = this._config.updatedCells as IUpdatedCellProps[];
           if (updatedCells && updatedCells.length > 0) {
             Promise.all(updatedCells.map(async({ userName, subUnitId, cellValue }) => {

@@ -80,7 +80,7 @@ router.get('/authurl', (req : Request, res : Response) => {
   });
 });
 
-router.post('/login', async <T> (req : Request, res : Response) => {
+router.post('/login', async (req : Request, res : Response) => {
   const { code } = req.query;
   const accessToken = await getAccessToken(code as string);
   if (accessToken.errcode){
@@ -108,6 +108,7 @@ router.post('/login', async <T> (req : Request, res : Response) => {
   const payload = {
     openid,
     nickname,
+    role: openid === process.env.ADMIN_USER_ID ? 'admin' : 'user',
     expires_in
   };
 
@@ -119,37 +120,25 @@ router.post('/login', async <T> (req : Request, res : Response) => {
     success: true,
     message: 'Successfully'
   });
+});
 
-  // if (accessToken?.openid) {
-  //   const { access_token, openid, expires_in } = accessToken;
-  //   const userInfo = await getUserInfo(access_token, openid);
+router.post('/login-test', async (req : Request, res : Response) => {
+  const { openid, nickname } = req.body;
+  const expires_in = 7200;
+  const payload = {
+    openid,
+    nickname,
+    role: openid === process.env.ADMIN_USER_ID ? 'admin' : 'user',
+    expires_in
+  };
 
-  //   if (userInfo?.openid) {
-  //     res.json({
-  //       data: {
-  //         ...userData,
-  //       },
-  //       code: 500,
-  //       success: false,
-  //       message: 'Failed to login'
-  //     });
-  //   }
-  //   else {
-  //     res.json({
-  //       data: null,
-  //       code: 500,
-  //       success: false,
-  //       message: `Failed to login, Error: ${userInfo.errmsg}`
-  //     });
-  //   }
-  // }
-  // else {
-  //   res.json({
-  //     data: null,
-  //     code: 500,
-  //     success: false,
-  //     message: `Failed to login, Error: ${accessToken.errmsg}`
-  //   });
-  // }
+  const token = generateToken(payload);
+
+  res.json({
+    data: token,
+    code: 200,
+    success: true,
+    message: 'Successfully'
+  });
 });
 export default router;
