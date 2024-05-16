@@ -29,6 +29,7 @@ import { FUniver } from "@univerjs/facade";
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import SaveExcelButton from "../plugins/SaveExcelButton";
 import { IUserRangeModel, IUpdatedCellProps } from "../models";
+import { getWorkOrders, saveWorkOrders } from "../utils/api";
 
 export interface UniverSheetRef {
   getData: () => IWorkbookData;
@@ -37,8 +38,8 @@ export interface UniverSheetRef {
 // eslint-disable-next-line react/display-name
 export const UniverSheet = forwardRef<
   UniverSheetRef,
-  { data: IWorkbookData; style?: React.CSSProperties, userInfo?: any, userRanges?: IUserRangeModel[] }
->(({ data, style, userInfo, userRanges }, ref) => {
+  { data: IWorkbookData; style?: React.CSSProperties, userInfo?: any, userRanges?: IUserRangeModel[], messageApi?: any }
+>(({ data, style, userInfo, userRanges, messageApi }, ref) => {
   const univerRef = useRef<Univer | null>(null);
   const univerApiRef = useRef<FUniver | null>(null);
   const workbookRef = useRef<Workbook | null>(null);
@@ -111,23 +112,28 @@ export const UniverSheet = forwardRef<
     univerApiRef.current = FUniver.newAPI(univer);
     const workbookApi = univerApiRef.current.getActiveWorkbook();
     workbookApi?.onCommandExecuted((commandInfo: Readonly<ICommandInfo>) => {
-      if (userInfo?.nickname === "主任" && commandInfo.id === "sheet.mutation.set-range-values") {
+      if (commandInfo.id === "sheet.mutation.set-range-values") {
         if(sessionStorage.getItem("isUpdated") && sessionStorage.getItem("isUpdated") === "true") {
           updatedCells.splice(0, updatedCells.length);
           sessionStorage.setItem("isUpdated", "false");
-        }
+        }        
         const { cellValue, subUnitId, unitId } =  commandInfo.params! as any;
         const cell = cellValue as IObjectMatrixPrimitiveType<ICellData>;
         const rowkey = parseInt(Object.keys(cell)[0]);
-        const userRange = userRanges!.find (c => c.startRow <= rowkey && c.endRow >= rowkey && c.sheetId === subUnitId);
-        if (!userRange) return;
-
-        const resultKey = rowkey - userRange.startRow + 1;
-        const existCell = updatedCells.find(c => c.userName === userRange.userName && c.subUnitId === subUnitId && c.unitId === unitId && c.cellValue[resultKey]);
+        let resultKey = rowkey;
+        let existCell = updatedCells.find(c => c.userName === userInfo.nickname && c.subUnitId === subUnitId && c.unitId === unitId && c.cellValue[resultKey]);
+        let userName = userInfo.nickname;
+        if (userInfo.role === "admin") {
+          const userRange = userRanges!.find (c => c.startRow <= rowkey && c.endRow >= rowkey && c.sheetId === subUnitId);
+          if (!userRange) return;
+          resultKey = rowkey - userRange.startRow + 1;
+          existCell = updatedCells.find(c => c.userName === userRange.userName && c.subUnitId === subUnitId && c.unitId === unitId && c.cellValue[resultKey]);
+          userName = userRange.userName;       
+        }
         if (existCell) {
           const cellKey = parseInt(Object.keys(cell[rowkey])[0])
           if(existCell.cellValue[resultKey][cellKey]) {
-            existCell.cellValue[resultKey][cellKey] = cell[rowkey][cellKey];
+            existCell.cellValue[resultKey][cellKey].v = cell[rowkey][cellKey].v;
           }
           else {
             existCell.cellValue[resultKey] = {...existCell.cellValue[resultKey], ...cell[rowkey]};
@@ -138,7 +144,7 @@ export const UniverSheet = forwardRef<
             cellValue: {[resultKey]: cell[rowkey]},
             subUnitId: subUnitId,
             unitId: unitId,
-            userName: userRange.userName
+            userName: userName
           };
           updatedCells.push(param);
           //setChangeCells([...changeCells, param]);
@@ -156,7 +162,38 @@ export const UniverSheet = forwardRef<
     univerApiRef.current = null;
     univerRef.current = null;
     workbookRef.current = null;
+    updatedCells.splice(0, updatedCells.length);
   };
+
+  const autoSaveWorkbook = async (preUserInfo: any) => {
+    if (!preUserInfo) {
+      return;
+    }
+
+    if (updatedCells && updatedCells.length > 0) {
+      messageApi.open({
+        type: 'loading',
+        content: '正在保存...',
+        duration: 0,
+      });
+      Promise.all(updatedCells.map(async({ userName, subUnitId, cellValue }) => {
+        const workbook = (await (await getWorkOrders(userName)).json()).data as IWorkbookData;
+        const originCellData = workbook.sheets[subUnitId].cellData!;
+        Object.keys(cellValue).forEach((rowKey: any) => {
+          Object.keys(cellValue[rowKey]).forEach((cellKey: any) => {
+            originCellData[rowKey][cellKey].v = cellValue[rowKey][cellKey].v ?? cellValue[rowKey][cellKey].p?.body?.dataStream?.replace("/r/n", "").trim();
+          });
+        });
+
+        await saveWorkOrders(workbook, userName);          
+      })).then(() => {
+        messageApi.destroy();
+      })
+      .finally(() => {
+        sessionStorage.setItem("isUpdated", "true");
+      });
+    }
+  }
 
   /**
    * Get workbook data
@@ -171,7 +208,10 @@ export const UniverSheet = forwardRef<
 
   useEffect(() => {
     init(data);
+    
+    const preUserInfo = userInfo; 
     return () => {
+      autoSaveWorkbook(preUserInfo);
       destroyUniver();
     };
   }, [data]);

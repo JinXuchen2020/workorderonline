@@ -70,55 +70,33 @@ class SaveExcelButton extends Plugin {
       id: buttonId,
       handler: async (accessor: IAccessor) => {
         // inject univer instance service
-        const univer = accessor.get(IUniverInstanceService);
         const notificationService = accessor.get(INotificationService);
-        const workbook = univer.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)!;
-
-        const data = workbook.getSnapshot();
-        const { role, nickname } = this._config.userInfo
-        if (role === "admin") {
-          const updatedCells = this._config.updatedCells as IUpdatedCellProps[];
-          if (updatedCells && updatedCells.length > 0) {
-            Promise.all(updatedCells.map(async({ userName, subUnitId, cellValue }) => {
-              const workbook = (await (await getWorkOrders(userName)).json()).data as IWorkbookData;
-              const originCellData = workbook.sheets[subUnitId].cellData!;
-              Object.keys(cellValue).forEach((rowKey: any) => {
-                Object.keys(cellValue[rowKey]).forEach((cellKey: any) => {
-                  originCellData[rowKey][cellKey] = cellValue[rowKey][cellKey];
-                });
+        const updatedCells = this._config.updatedCells as IUpdatedCellProps[];
+        if (updatedCells && updatedCells.length > 0) {
+          Promise.all(updatedCells.map(async({ userName, subUnitId, cellValue }) => {
+            const workbook = (await (await getWorkOrders(userName)).json()).data as IWorkbookData;
+            const originCellData = workbook.sheets[subUnitId].cellData!;
+            Object.keys(cellValue).forEach((rowKey: any) => {
+              Object.keys(cellValue[rowKey]).forEach((cellKey: any) => {
+                originCellData[rowKey][cellKey].v = cellValue[rowKey][cellKey].v ?? cellValue[rowKey][cellKey].p?.body?.dataStream?.replace("/r/n", "").trim();
               });
-
-              await saveWorkOrders(workbook, userName);
-            })).then(() => {
-              notificationService.show({
-                type: "success",
-                content: `用户：${updatedCells.map(item => item.userName).join(",")}工单已更新，请尽快通知相关人员`,
-                title: `工单更新`,
-              });
-            }).catch(() => {
-              notificationService.show({
-                type: "error",
-                content: `用户：${updatedCells.map(item => item.userName).join(",")}工单保存失败`,
-                title: `工单更新`,
-              });
-            }).finally(() => {
-              sessionStorage.setItem("isUpdated", "true");
             });
-          }
-        }
-        else {
-          saveWorkOrders(data, nickname).then(() => {
+
+            await saveWorkOrders(workbook, userName);
+          })).then(() => {
             notificationService.show({
               type: "success",
-              content: `用户：${nickname}工单保存成功`,
-              title: `工单保存`,
+              content: `用户：${updatedCells.map(item => item.userName).join(",")}工单保存成功`,
+              title: `工单更新`,
             });
           }).catch(() => {
             notificationService.show({
               type: "error",
-              content: `用户：${nickname}工单保存失败`,
-              title: `工单保存`,
+              content: `用户：${updatedCells.map(item => item.userName).join(",")}工单保存失败`,
+              title: `工单更新`,
             });
+          }).finally(() => {
+            sessionStorage.setItem("isUpdated", "true");
           });
         }
         return true;
