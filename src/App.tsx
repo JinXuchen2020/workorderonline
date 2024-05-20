@@ -76,9 +76,16 @@ const App: React.FC = () => {
               })
 
               setData(result);
-              messageApi.destroy();
             });
           }
+        }).catch((res: any) => {
+          messageApi.open({
+            type: 'error',
+            content: `获取数据失败: ${res.message}`,
+            duration: 0,
+          });
+        }).finally(()=> {
+          messageApi.destroy();
         });
       }
       else {
