@@ -1,11 +1,9 @@
 import {
   CommandType,
   ICommandService,
-  IUniverInstanceService,
   IWorkbookData,
   Plugin,
   UniverInstanceType,
-  Workbook,
 } from "@univerjs/core";
 import {
   ComponentManager,
