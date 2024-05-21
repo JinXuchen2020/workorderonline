@@ -187,10 +187,10 @@ export const UniverSheet = forwardRef<
 
         await saveWorkOrders(workbook, userName);          
       })).then(() => {
-        messageApi.destroy();
+        sessionStorage.setItem("isUpdated", "true");
       })
       .finally(() => {
-        sessionStorage.setItem("isUpdated", "true");
+        messageApi.destroy();
       });
     }
   }
