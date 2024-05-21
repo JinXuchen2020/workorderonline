@@ -21,7 +21,7 @@ jobs:
         run: npm run build
       - name: Deploy to GitHub Pages
         run: |
-          git config user.name jinxuchen2020
-          git config user.email jinxuchen2020@icloud.com
+          git config --global user.name "jinxuchen2020"
+          git config --global user.email "jinxuchen2020@icloud.com"
           npm run deploy
 
