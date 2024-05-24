@@ -29,7 +29,8 @@ import { FUniver } from "@univerjs/facade";
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import SaveExcelButton from "../plugins/SaveExcelButton";
 import { IUserRangeModel, IUpdatedCellProps } from "../models";
-import { getWorkOrders, saveWorkOrders } from "../utils/api";
+import { useSearchParams } from "react-router-dom";
+import { saveExcel } from "../utils";
 
 export interface UniverSheetRef {
   getData: () => IWorkbookData;
@@ -45,6 +46,7 @@ export const UniverSheet = forwardRef<
   const workbookRef = useRef<Workbook | null>(null);
   const containerRef = useRef(null);
   const [updatedCells,] = useState<IUpdatedCellProps[]>([]);
+  const [searchParams, ] = useSearchParams();
 
   useImperativeHandle(
     ref,
@@ -100,7 +102,8 @@ export const UniverSheet = forwardRef<
 
     univer.registerPlugin(SaveExcelButton, {
       userInfo,
-      updatedCells
+      updatedCells,
+      searchParams: searchParams.toString().length > 0? `?${searchParams.toString()}` : ''
     });
 
     // create workbook instance
@@ -176,17 +179,10 @@ export const UniverSheet = forwardRef<
         content: '正在保存...',
         duration: 0,
       });
-      Promise.all(updatedCells.map(async({ userName, subUnitId, cellValue }) => {
-        const workbook = (await (await getWorkOrders(userName)).json()).data as IWorkbookData;
-        const originCellData = workbook.sheets[subUnitId].cellData!;
-        Object.keys(cellValue).forEach((rowKey: any) => {
-          Object.keys(cellValue[rowKey]).forEach((cellKey: any) => {
-            originCellData[rowKey][cellKey].v = cellValue[rowKey][cellKey].v ?? cellValue[rowKey][cellKey].p?.body?.dataStream?.replace("/r/n", "").trim();
-          });
-        });
-
-        await saveWorkOrders(workbook, userName);          
-      })).then(() => {
+      const params = searchParams.toString().length > 0? `?${searchParams.toString()}` : ''
+      const bookData = getData();
+      saveExcel(userInfo, params, bookData, updatedCells)
+      .then(() => {
         sessionStorage.setItem("isUpdated", "true");
       })
       .finally(() => {

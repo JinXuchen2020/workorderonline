@@ -80,9 +80,9 @@ export const saveWorkOrders = (data: any, userName: string) => {
   });
 };
 
-export const getWorkOrders = (userName: string) => {
+export const getWorkOrders = (userName: string, params: string) => {
   const token = sessionStorage.getItem("token");
-  return fetch(getUrl(`/api/workorders/${userName}`), {
+  return fetch(getUrl(`/api/workorders/${userName}${params}`), {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -91,9 +91,9 @@ export const getWorkOrders = (userName: string) => {
   });
 };
 
-export const getAllWorkOrders = () => {
+export const getAllWorkOrders = (params: string) => {
   const token = sessionStorage.getItem("token");
-  return fetch(getUrl(`/api/workorders`), {
+  return fetch(getUrl(`/api/workorders${params}`), {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

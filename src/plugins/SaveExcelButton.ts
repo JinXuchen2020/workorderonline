@@ -1,9 +1,10 @@
 import {
   CommandType,
   ICommandService,
-  IWorkbookData,
+  IUniverInstanceService,
   Plugin,
   UniverInstanceType,
+  Workbook,
 } from "@univerjs/core";
 import {
   ComponentManager,
@@ -15,8 +16,8 @@ import {
 } from "@univerjs/ui";
 import { IAccessor, Inject, Injector } from "@wendellhu/redi";
 import { SaveSingle } from "@univerjs/icons";
-import { getWorkOrders, saveWorkOrders } from "../utils/api";
 import { IUpdatedCellProps } from "../models";
+import { saveExcel } from "../utils";
 
 /**
  * Export Excel Button Plugin
@@ -69,19 +70,12 @@ class SaveExcelButton extends Plugin {
       handler: async (accessor: IAccessor) => {
         // inject univer instance service
         const notificationService = accessor.get(INotificationService);
+        const univerInstanceService = accessor.get(IUniverInstanceService);
         const updatedCells = this._config.updatedCells as IUpdatedCellProps[];
+        const params = this._config.searchParams.toString();
+        const bookData = univerInstanceService.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)!.getSnapshot();
         if (updatedCells && updatedCells.length > 0) {
-          Promise.all(updatedCells.map(async({ userName, subUnitId, cellValue }) => {
-            const workbook = (await (await getWorkOrders(userName)).json()).data as IWorkbookData;
-            const originCellData = workbook.sheets[subUnitId].cellData!;
-            Object.keys(cellValue).forEach((rowKey: any) => {
-              Object.keys(cellValue[rowKey]).forEach((cellKey: any) => {
-                originCellData[rowKey][cellKey].v = cellValue[rowKey][cellKey].v ?? cellValue[rowKey][cellKey].p?.body?.dataStream?.replace("/r/n", "").trim();
-              });
-            });
-
-            await saveWorkOrders(workbook, userName);
-          })).then(() => {
+          saveExcel(this._config.userInfo, params, bookData, updatedCells).then(() => {
             notificationService.show({
               type: "success",
               content: `用户：${updatedCells.map(item => item.userName).join(",")}工单保存成功`,

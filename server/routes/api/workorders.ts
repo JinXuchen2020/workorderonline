@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import fs from 'fs';
 import { promisify } from 'util';
+import { IWorkbookData, ICellData, IObjectMatrixPrimitiveType, ObjectMatrix } from "@univerjs/core";
 const router = express.Router();
 
 const readFile = promisify(fs.readFile)
@@ -24,13 +25,34 @@ const writeJsonFile = async (fileName: string, data: any) => {
   await writeFile(filePath, dataStr, 'utf8');
 };
 
+const filterWorkOrders = (data: IWorkbookData, start: any, end: any) => {
+  for (let sheet in data.sheets) {
+    const originCellData = data.sheets[sheet].cellData as IObjectMatrixPrimitiveType<ICellData>;
+    const matrixObject = new ObjectMatrix<ICellData>(originCellData);
+    const filteredMatrix = matrixObject.forRow((row, cols) => {
+      if(row === 0) return true;
+      const date = matrixObject.getValue(row, 0).v?.toString();
+      if(!date) return true;
+      if(date >= start && date <= end){
+        return true;
+      }
+      else {
+        matrixObject.removeRows(row, 1);
+        return true;
+      }
+    })
+    data.sheets[sheet].cellData = filteredMatrix.getMatrix();
+  }
+}
+
 router.get('/', async (req : Request, res : Response) => {
   let result: any = {}
   fs.readdir('./workorders', async(err, files) => {
     if (files && files.length > 0) {
       Promise.all(files.sort().map(async file => {
         const data = await readFile(`./workorders/${file}`, 'utf8');
-        result[file.replace('.json', '')] = JSON.parse(data);
+        const paredData = JSON.parse(data) as IWorkbookData;
+        result[file.replace('.json', '')] = paredData;
       })).then(() => {      
         res.json({
           data: result,
@@ -54,7 +76,7 @@ router.get('/', async (req : Request, res : Response) => {
 /* GET users listing. */
 router.get('/:userName', async <T> (req : Request, res : Response) => {
   const userName = req.params.userName;
-  const data = await readJsonFile(userName);
+  const data = await readJsonFile(userName) as IWorkbookData;
   res.json({
     data: data as T,
     code: 200,

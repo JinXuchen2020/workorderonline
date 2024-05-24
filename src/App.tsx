@@ -12,8 +12,9 @@ import { getAllWorkOrders, getWorkOrders } from "./utils/api";
 import { useWeChatLogin } from "./hooks";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import queryString from 'query-string';
-import { IWorkbookData } from "@univerjs/core";
+import { ICellData, IObjectMatrixPrimitiveType, IWorkbookData, ObjectMatrix } from "@univerjs/core";
 import { IUserRangeModel } from "./models";
+import { DateRangeSelector } from "./components/DateRangeSelector";
 
 const App: React.FC = () => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const App: React.FC = () => {
   const [userRange,] = useState<IUserRangeModel[]>([])
   const { isLoggedIn, userInfo, loginError, handleLogin, handleTempLogin} = useWeChatLogin();
   const [messageApi, contextHolder] = message.useMessage();
+  const [dateRangeOpen, setDateRangeOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -43,37 +45,44 @@ const App: React.FC = () => {
       }
     }
     else {
-      const { role, nickname } = userInfo!      
+      const { role, nickname } = userInfo!
       messageApi.open({
         type: 'loading',
         content: '正在获取数据...',
         duration: 0,
       });
+      const params = searchParams.toString().length > 0? `?${searchParams.toString()}` : ''
       if (role === "admin") {
-        getAllWorkOrders().then((res) => {
+        getAllWorkOrders(params).then((res) => {
           if (res.status === 200) {
             res.json().then((json) => {
               const keys = Object.keys(json.data);
               let result = json.data[keys[0]] as IWorkbookData;
-              const { sheetOrder } = result
-              sheetOrder.forEach((sheetId: any) => {     
-                userRange.push({ userName: keys[0], sheetId: sheetId, startRow: 1, endRow: Object.keys(result.sheets[sheetId].cellData!).length - 1 });
-                //setUserRange([...userRange, { userName: keys[0], startRow: 1, endRow: Object.keys(result.sheets[sheetId].cellData!).length - 1 }])
-                keys.forEach((booKey, bookIndex) => {
-                  if (bookIndex > 0) {                    
-                    const count = Object.keys(result.sheets[sheetId].cellData!).length
-                    const rows = json.data[booKey].sheets[sheetId].cellData!
-                    Object.keys(rows).forEach((key, rowIndex) => {
-                      if (rowIndex > 0) {
-                        result.sheets[sheetId].cellData![count + rowIndex - 1] = rows[key as any]
-                      }
-                    })
+              for (let sheetId in result.sheets) {
+                const originCellData = result.sheets[sheetId].cellData as IObjectMatrixPrimitiveType<ICellData>;
+                const matrixObject = new ObjectMatrix<ICellData>(originCellData);
+                
+                userRange.push({ userName: keys[0], sheetId: sheetId, startRow: 1, endRow: matrixObject.getLength() - 1 });
 
-                    userRange.push({ userName: booKey, sheetId: sheetId, startRow: count, endRow: Object.keys(result.sheets[sheetId].cellData!).length - 1 });
-                    //setUserRange([...userRange, { userName: keys[0], startRow: count, endRow: Object.keys(result.sheets[sheetId].cellData!).length - 1 }])
+                keys.forEach((booKey, bookIndex) => {
+                  if (bookIndex > 0) {
+                    const bookData = json.data[booKey].sheets[sheetId].cellData! as IObjectMatrixPrimitiveType<ICellData>                    
+                    const bookMatrixObject = new ObjectMatrix<ICellData>(bookData);
+                    const startRow = matrixObject.getLength();
+                    bookMatrixObject.forRow((row) => {
+                      if (row > 0) {
+                        matrixObject.setRow(startRow - 1 + row, bookMatrixObject.getRow(row)!);
+                      }
+                    });
+                    const endRow = matrixObject.getLength() - 1;
+
+                    userRange.push({ userName: booKey, sheetId: sheetId, startRow: startRow, endRow: endRow });
                   }
                 })
-              })
+
+                const cellData = matrixObject.getMatrix();
+                result.sheets[sheetId].cellData = cellData;
+              }
 
               setData(result);
             });
@@ -89,7 +98,7 @@ const App: React.FC = () => {
         });
       }
       else {
-        getWorkOrders(nickname!).then((res) => {
+        getWorkOrders(nickname!, params).then((res) => {
           if (res.status === 200) {
             res.json().then((json) => {
               setData(json.data);
@@ -99,6 +108,18 @@ const App: React.FC = () => {
         });
       }
     }    
+  }, [userInfo, searchParams]);
+
+  useEffect(() => {
+    if (userInfo) {
+      const { role } = userInfo
+      if (role === "admin") {
+        setDateRangeOpen(false);
+      }
+      else {
+        setDateRangeOpen(false);
+      }
+    }
   }, [userInfo]);
 
   useEffect(() => {
@@ -126,6 +147,7 @@ const App: React.FC = () => {
         </Space>
       </div>
       <UniverSheet style={{ flex: 1 }} ref={univerRef} data={data} userInfo={userInfo} userRanges={userRange} messageApi={messageApi} />
+      <DateRangeSelector visible={dateRangeOpen} callback={setDateRangeOpen} />
     </div>
   );
 };
