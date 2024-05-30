@@ -11,7 +11,7 @@ export const Login : React.FC = () => {
 
   const id = Form.useWatch('id', form);
 
-  const [qrCodeUrl, setQrCodeUrl] = useState('');
+  const [_, setQrCodeUrl] = useState('');
 
   const {isLoggedIn, handleTempLogin} = useWeChatLogin();
 
