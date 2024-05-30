@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { IUserRspModel } from "../models";
 import { getMe, loginTest, loginWechatUser } from "../utils/api";
 
@@ -6,8 +6,8 @@ import { getMe, loginTest, loginWechatUser } from "../utils/api";
 export const useWeChatLogin = ()=> {
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<any>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userInfo, setUserInfo] = useState<Partial<IUserRspModel>>();
+  //const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userInfoStr, setUserInfoStr] = useState<string>();
 
   const handleLogin = async (code: string) => {
     try {
@@ -17,8 +17,9 @@ export const useWeChatLogin = ()=> {
       if (data.success) {
         sessionStorage.setItem("token", data.data);
         const user = (await (await getMe()).json()).data as IUserRspModel;
-        setUserInfo(user);
-        setIsLoggedIn(true);
+        sessionStorage.setItem("userInfo", JSON.stringify(user));
+        setUserInfoStr(JSON.stringify(user));
+        //setIsLoggedIn(true);
       }
       else {
         setLoginError(data.message);
@@ -36,16 +37,13 @@ export const useWeChatLogin = ()=> {
     try {
       setIsLoading(true);
       setLoginError(null);
-      const testUser ={
-        nickname: option.children,
-        openid: option.value
-      }
-      const tokenData = (await (await loginTest(testUser)).json());
+      const tokenData = (await (await loginTest(option)).json());
       if (tokenData.success) {
         sessionStorage.setItem("token", tokenData.data);
         const user = (await (await getMe()).json()).data as IUserRspModel;
-        setUserInfo(user);
-        setIsLoggedIn(true);
+        sessionStorage.setItem("userInfo", JSON.stringify(user));
+        setUserInfoStr(JSON.stringify(user));
+        //setIsLoggedIn(true);
       }
       else {
         setLoginError(tokenData.message);
@@ -59,9 +57,26 @@ export const useWeChatLogin = ()=> {
     }
   };
 
+  const isLoggedIn = useMemo(() => {
+    return !sessionStorage.getItem("token") ? false : true;
+  },[sessionStorage.getItem("token")])
+
+  const userInfo = useMemo(() => {
+    if (userInfoStr) {
+      return JSON.parse(userInfoStr) as IUserRspModel;
+    }
+    else {
+      const storage = sessionStorage.getItem("userInfo");
+      if (storage) {
+        return JSON.parse(storage) as IUserRspModel;
+      }
+    }    
+  },[userInfoStr])
+
   const handleLogout = () => {
-    setUserInfo(undefined);
-    setIsLoggedIn(false);
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("userInfo");
+    setUserInfoStr(undefined)
   };
 
   return {

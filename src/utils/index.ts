@@ -22,7 +22,7 @@ export const isWxBrowser = () => {
 }
 
 export const saveExcel = async (userInfo : IUserRspModel, params:string, bookData: IWorkbookData, updatedCells: IUpdatedCellProps[] ) => {
-  const { role, nickname } = userInfo;
+  const { role, openid } = userInfo;
   if(role === "admin") {
     updatedCells.map(async({ userName, subUnitId, cellValue }) => {
       const workbook = (await (await getWorkOrders(userName, params)).json()).data as IWorkbookData;
@@ -79,6 +79,6 @@ export const saveExcel = async (userInfo : IUserRspModel, params:string, bookDat
       }
     });
 
-    await saveWorkOrders(bookData, nickname);
+    await saveWorkOrders(bookData, openid);
   }
 }

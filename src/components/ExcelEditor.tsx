@@ -28,18 +28,19 @@ import { UniverSheetsFindReplacePlugin } from '@univerjs/sheets-find-replace';
 import { FUniver } from "@univerjs/facade";
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import SaveExcelButton from "../plugins/SaveExcelButton";
-import { IUserRangeModel, IUpdatedCellProps } from "../models";
+import { IUserRangeModel, IUpdatedCellProps, IUserRspModel } from "../models";
 import { useSearchParams } from "react-router-dom";
 import { saveExcel } from "../utils";
 
 export interface UniverSheetRef {
   getData: () => IWorkbookData;
+  autoSaveWorkbook: (userInfo?: IUserRspModel) => void;
 }
 
 // eslint-disable-next-line react/display-name
 export const UniverSheet = forwardRef<
   UniverSheetRef,
-  { data: IWorkbookData; style?: React.CSSProperties, userInfo?: any, userRanges?: IUserRangeModel[], messageApi?: any }
+  { data: IWorkbookData; style?: React.CSSProperties, userInfo?: IUserRspModel, userRanges?: IUserRangeModel[], messageApi?: any }
 >(({ data, style, userInfo, userRanges, messageApi }, ref) => {
   const univerRef = useRef<Univer | null>(null);
   const univerApiRef = useRef<FUniver | null>(null);
@@ -53,6 +54,7 @@ export const UniverSheet = forwardRef<
     () =>
       ({
         getData,
+        autoSaveWorkbook : (userInfo?: IUserRspModel) => autoSaveWorkbook(userInfo),
       } as UniverSheetRef),
     []
   );
@@ -124,9 +126,9 @@ export const UniverSheet = forwardRef<
         const cell = cellValue as IObjectMatrixPrimitiveType<ICellData>;
         const rowkey = parseInt(Object.keys(cell)[0]);
         let resultKey = rowkey;
-        let existCell = updatedCells.find(c => c.userName === userInfo.nickname && c.subUnitId === subUnitId && c.unitId === unitId && c.cellValue[resultKey]);
-        let userName = userInfo.nickname;
-        if (userInfo.role === "admin") {
+        let existCell = updatedCells.find(c => c.userName === userInfo!.openid && c.subUnitId === subUnitId && c.unitId === unitId && c.cellValue[resultKey]);
+        let userName = userInfo!.openid;
+        if (userInfo!.role === "admin") {
           const userRange = userRanges!.find (c => c.startRow <= rowkey && c.endRow >= rowkey && c.sheetId === subUnitId);
           if (!userRange) return;
           resultKey = rowkey - userRange.startRow + 1;
@@ -181,7 +183,7 @@ export const UniverSheet = forwardRef<
       });
       const params = searchParams.toString().length > 0? `?${searchParams.toString()}` : ''
       const bookData = getData();
-      saveExcel(userInfo, params, bookData, updatedCells)
+      saveExcel(userInfo!, params, bookData, updatedCells)
       .then(() => {
         sessionStorage.setItem("isUpdated", "true");
       })

@@ -37,4 +37,18 @@
 
 .topBar {
   padding: 10px;
+  display: flex;
+  flex-direction:row;
+  justify-content: space-between;
+}
+
+.preview-result {
+  margin-top: 16px;
+  border: 1px dashed #e9e9e9;
+  border-radius: 2px;
+  background-color: #fafafa;
+  min-height: 200px;
+  text-align: center;
+  padding-top: 80px;
+  font-size: x-large;
 }

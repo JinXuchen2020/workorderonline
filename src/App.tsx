@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import "./App.css";
-import { Select, Space, message } from "antd";
+import { Space, message } from "antd";
 import { DEFAULT_WORKBOOK_DATA } from "./assets/default-workbook-data";
 import {
   ExcelExport,
   ExcelImport,
+  HeaderCtl,
   UniverSheet,
   UniverSheetRef,
 } from "./components";
@@ -18,19 +19,20 @@ import { DateRangeSelector } from "./components/DateRangeSelector";
 
 const App: React.FC = () => {
   const navigate = useNavigate();
-  const [data, setData] = useState<IWorkbookData>(DEFAULT_WORKBOOK_DATA);
+  const [data, setData] = useState<IWorkbookData>();
   const univerRef = useRef<UniverSheetRef | null>(null);
   const [searchParams, ] = useSearchParams();
   const [userRange,] = useState<IUserRangeModel[]>([])
-  const { isLoggedIn, userInfo, loginError, handleLogin, handleTempLogin} = useWeChatLogin();
+  const {userInfo, loginError, handleLogin, handleLogout} = useWeChatLogin();
   const [messageApi, contextHolder] = message.useMessage();
   const [dateRangeOpen, setDateRangeOpen] = useState(false);
+  let isLoading = false
 
   useEffect(() => {
-    if (!isLoggedIn) {
+    if (!userInfo) {
       const { code } = queryString.parse(searchParams.toString())
       if(code === undefined) {
-        // navigate('/login')
+        navigate('/login')
       }
       else {        
         messageApi.open({
@@ -45,12 +47,23 @@ const App: React.FC = () => {
       }
     }
     else {
-      const { role, nickname } = userInfo!
+      const { role, openid, exp } = userInfo!
+      const isTimeOut = new Date().getTime() / 1000 > exp
+      if(isTimeOut) {
+        handleLogout()
+        navigate('/login')
+      }
+
+      if (isLoading) {
+        return;
+      }
       messageApi.open({
         type: 'loading',
         content: '正在获取数据...',
         duration: 0,
       });
+
+      isLoading = true;
       const params = searchParams.toString().length > 0? `?${searchParams.toString()}` : ''
       if (role === "admin") {
         getAllWorkOrders(params).then((res) => {
@@ -95,20 +108,22 @@ const App: React.FC = () => {
           });
         }).finally(()=> {
           messageApi.destroy();
+          isLoading = false;
         });
       }
       else {
-        getWorkOrders(nickname!, params).then((res) => {
+        getWorkOrders(openid!, params).then((res) => {
           if (res.status === 200) {
             res.json().then((json) => {
               setData(json.data);
               messageApi.destroy();
+              isLoading = false;
             });
           }
         });
       }
     }    
-  }, [userInfo, searchParams]);
+  }, [userInfo?.openid]);
 
   useEffect(() => {
     if (userInfo) {
@@ -120,7 +135,17 @@ const App: React.FC = () => {
         setDateRangeOpen(false);
       }
     }
-  }, [userInfo]);
+  }, [userInfo?.openid]);
+
+  useEffect(() => {
+    const listener = () => {
+      univerRef.current?.autoSaveWorkbook(userInfo);
+    };
+    window.addEventListener('beforeunload', listener);
+    return () => {
+        window.removeEventListener('beforeunload', listener)
+    }
+}, []);
 
   useEffect(() => {
     if (loginError) {
@@ -138,15 +163,16 @@ const App: React.FC = () => {
         <Space>
           <ExcelImport callback={setData} />
           <ExcelExport workbook={univerRef.current} />
-          <Select onChange={(_, Option) => handleTempLogin(Option)} style={{ width: 120 }}>
+          {/* <Select onChange={(_, Option) => handleTempLogin(Option)} style={{ width: 120 }}>
             <Select.Option value="用户1">用户1</Select.Option>
             <Select.Option value="用户2">用户2</Select.Option>
             <Select.Option value="用户3">用户3</Select.Option>
             <Select.Option value="主任">车间主任</Select.Option>
-          </Select>
+          </Select> */}
         </Space>
+        <HeaderCtl callback={()=> univerRef.current?.autoSaveWorkbook(userInfo)} />
       </div>
-      <UniverSheet style={{ flex: 1 }} ref={univerRef} data={data} userInfo={userInfo} userRanges={userRange} messageApi={messageApi} />
+      {data && <UniverSheet style={{ flex: 1 }} ref={univerRef} data={data} userInfo={userInfo} userRanges={userRange} messageApi={messageApi} />}      
       <DateRangeSelector visible={dateRangeOpen} callback={setDateRangeOpen} />
     </div>
   );
