@@ -6,6 +6,8 @@
 import app from '../app';
 import debug from 'debug';
 import http from 'http';
+import https from 'https';
+import fs from 'fs';
 // var app = require('../app');
 // var debug = require('debug')('server:server');
 // var http = require('http');
@@ -34,6 +36,7 @@ const normalizePort =(val: string) => {
  */
 
 var port = normalizePort(process.env.PORT || '3000');
+var sslPort = normalizePort(process.env.PORT || '3030');
 app.set('port', port);
 
 /**
@@ -41,12 +44,19 @@ app.set('port', port);
  */
 
 var server = http.createServer(app);
+const options = {
+  key: fs.readFileSync('./public/hlchangrun.top_key.key'),
+  cert: fs.readFileSync('./public/hlchangrun.top_chain.crt')
+};
+
+var vSSLserver = https.createServer(options, app);
 
 /**
  * Listen on provided port, on all network interfaces.
  */
 
 server.listen(port);
+vSSLserver.listen(sslPort);
 
 /**
  * Event listener for HTTP server "error" event.
@@ -86,8 +96,22 @@ const onListening = () => {
   console.log('Listening on ' + bind);
 }
 
+const onSSLListening = () => {
+  var addr = vSSLserver.address();
+  var bind = typeof addr === 'string'
+    ? 'pipe ' + addr
+    : 'port ' + addr!.port;
+  console.log('Listening on ' + bind);
+}
+
 server.on('error', onError);
 server.on('listening', onListening);
 server.on('close', () => {
+  process.exit(0);
+});
+
+vSSLserver.on('error', onError);
+vSSLserver.on('listening', onSSLListening);
+vSSLserver.on('close', () => {
   process.exit(0);
 });
