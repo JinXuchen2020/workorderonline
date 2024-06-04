@@ -26,6 +26,7 @@ if(process.env.NODE_ENV === 'production') {
   const assetsPath = path.join(filePath, 'assets');
   console.log(assetsPath);
   app.use("/assets", express.static(assetsPath));
+  app.use("/vite.svg", express.static(path.join(filePath, 'vite.svg')));
   // 主页路由
   app.get('/', (req, res) => {
     res.sendFile(path.join(filePath, 'index.html'));
