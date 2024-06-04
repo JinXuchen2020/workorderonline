@@ -5,6 +5,7 @@ import cors from 'cors';
 import logger from'morgan';
 import routes from './routes';
 import dotenv from 'dotenv';
+import path from 'node:path';
 dotenv.config();
 
 const app = express();
@@ -19,6 +20,17 @@ app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 app.use(cookieParser());
 app.use(express.static('public'));
 app.use(cors());
+
+if(process.env.NODE_ENV === 'production') {
+  const filePath = path.dirname(__dirname).split(path.sep).join(path.sep);
+  const assetsPath = path.join(filePath, 'assets');
+  console.log(assetsPath);
+  app.use("/assets", express.static(assetsPath));
+  // 主页路由
+  app.get('/', (req, res) => {
+    res.sendFile(path.join(filePath, 'index.html'));
+  });
+}
 
 app.use(routes);
 
