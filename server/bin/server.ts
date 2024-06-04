@@ -35,8 +35,8 @@ const normalizePort =(val: string) => {
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
-var sslPort = normalizePort(process.env.PORT || '3030');
+var port = normalizePort(process.env.PORT || '8081');
+var sslPort = normalizePort(process.env.PORT || '8082');
 app.set('port', port);
 
 /**
