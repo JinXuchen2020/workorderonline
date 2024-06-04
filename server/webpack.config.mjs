@@ -36,7 +36,8 @@ const config = {
   plugins: [
     new copyPlugin({
       patterns: [
-        { from: 'public', to: __dirname +'/dist/public' }
+        { from: 'public', to: __dirname +'/dist/public' },
+        { from: 'vercel.json', to: __dirname +'/dist/vercel.json' }
       ]
     }),
     new DefinePlugin({
