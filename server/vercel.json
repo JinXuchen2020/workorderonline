@@ -1,7 +1,8 @@
 {
-  "version": 2,
-  "name": "workorders-online",
-  "builds": [
-    { "src": "server.cjs", "use": "@vercel/node" }
+  "rewrites": [
+    {
+     "source": "/(.*)",
+      "destination": "/server.cjs"
+    }
   ]
-}
+ }
