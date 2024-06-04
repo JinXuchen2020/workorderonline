@@ -22,7 +22,7 @@ app.use(express.static('public'));
 app.use(cors());
 
 if(process.env.NODE_ENV === 'production') {
-  const filePath = path.dirname(__dirname).split(path.sep).join(path.sep);
+  const filePath = __dirname;
   const assetsPath = path.join(filePath, 'assets');
   console.log(assetsPath);
   app.use("/assets", express.static(assetsPath));

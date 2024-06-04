@@ -15,8 +15,8 @@ const config = {
   entry:'./bin/server.ts',
   devtool: 'inline-source-map',
   output: {
-    filename: 'bundle.cjs',
-    path: __dirname +'/dist/server'
+    filename: 'server.cjs',
+    path: __dirname +'/dist'
   },
   module : {
     rules: [
