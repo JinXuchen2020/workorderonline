@@ -13,4 +13,4 @@ export type {
 
 export type { ITokenRspModel } from "./Login";
 
-export type { IWorkOrderRspModel, IUserRangeModel, IUpdatedCellProps } from "./WorkOrder";
+export type { IWorkOrderRspModel, IUserRangeModel, IUpdatedCellProps, IUpdatedFortuneCellProps } from "./WorkOrder";

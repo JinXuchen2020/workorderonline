@@ -14,6 +14,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@fortune-sheet/react": "^0.19.7",
     "@univerjs/core": "^0.1.9",
     "@univerjs/design": "^0.1.9",
     "@univerjs/docs": "^0.1.9",
@@ -29,6 +30,7 @@
     "@univerjs/sheets-formula": "^0.1.9",
     "@univerjs/sheets-ui": "^0.1.9",
     "@univerjs/ui": "^0.1.9",
+    "@zenmrp/fortune-sheet-excel": "^1.0.3",
     "antd": "^5.16.5",
     "exceljs": "^4.4.0",
     "gh-pages": "^6.1.1",
@@ -38,8 +40,7 @@
     "query-string": "^9.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.23.0",
-    "xlsx": "^0.18.5"
+    "react-router-dom": "^6.23.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.66",

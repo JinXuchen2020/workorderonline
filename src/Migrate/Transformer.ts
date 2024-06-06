@@ -1,5 +1,6 @@
 import { HorizontalAlign, ICellData, IColorStyle, IObjectArrayPrimitiveType, IStyleData, ITextDecoration, ITextRotation, IWorkbookData, Nullable, VerticalAlign, WrapStrategy } from '@univerjs/core';
 import * as Excel from 'exceljs';
+import { Sheet, CellMatrix } from "@fortune-sheet/core";
 
 export class Transformer {
   static transform(data: IWorkbookData, _options?: any): Excel.Workbook {
@@ -28,6 +29,46 @@ export class Transformer {
 
         Transformer.setStyleAndValue(sheetData, worksheet);
 
+      }
+    });
+
+    return workbook;
+  }
+
+  static transformFortuneSheet(data: Sheet[], _options?: any): Excel.Workbook {
+    const workbook = new Excel.Workbook();
+
+    data.forEach(sheet => {
+      const currentSheet = sheet;
+      const sheetData = currentSheet.data!;
+      const borderInfo = currentSheet.config?.borderInfo!;
+      const worksheet = workbook.addWorksheet(currentSheet.name!, { views: [{ showGridLines: true }] });
+      const columnData = currentSheet.config?.columnlen ?? {};
+      const defaultColumnWidth = currentSheet.defaultColWidth ?? 80;
+
+      if(sheetData.length > 0) {    
+        const firstRowBorder = borderInfo.filter(c=> c.value.row_index == 0);
+        worksheet.columns = Object.keys(sheetData[0]).map(cellKey => {
+          const cell = sheetData[0][cellKey as any];
+          const cellBorder = firstRowBorder.find(c=> c.value.col_index == cellKey);
+
+          const result : Partial<Excel.Column> = {
+            header: cell?.v?.toString() ?? '',
+            key: cellKey,
+            width: (columnData[cellKey as any] ?? defaultColumnWidth) / 8,
+            isCustomWidth: false,
+            border: {
+              top: Transformer.getBorderStyle(cellBorder?.value.t.style, cellBorder?.value.t.color),
+              bottom: Transformer.getBorderStyle(cellBorder?.value.b.style, cellBorder?.value.b.color),
+              left: Transformer.getBorderStyle(cellBorder?.value.l.style, cellBorder?.value.l.color),
+              right: Transformer.getBorderStyle(cellBorder?.value.r.style, cellBorder?.value.r.color),
+            }
+          }
+
+          return result
+        });
+
+        Transformer.setFortuneSheetStyleAndValue(sheetData, borderInfo, worksheet);
       }
     });
 
@@ -79,6 +120,65 @@ export class Transformer {
         target.font = font ?? { name: 'Arial', size: 10, color: { argb: '000000' } };
         target.alignment = alignment ?? { vertical: 'top', horizontal: 'left', wrapText: false, textRotation: 0 };
         target.value = value ?? '';
+        return true;
+      })
+    })
+  }
+
+  static setFortuneSheetStyleAndValue (cellArr:CellMatrix, borderInfo: any[], worksheet: Excel.Worksheet) {
+    if (!Array.isArray(cellArr)) return;
+   
+    cellArr.forEach(function (row, rowid) {
+      //const dbrow = worksheet.getRow(rowid+1);
+      //设置单元格行高,默认乘以1.2倍
+      //dbrow.height=luckysheet.getRowHeight([rowid])[rowid]*1.2;
+      row.every(function (cell, columnid) {
+        if (!cell) return true;
+        if(rowid == 0){
+          //const dobCol = worksheet.getColumn(columnid+1);
+           //设置单元格列宽除以8
+          //dobCol.width=luckysheet.getColumnWidth([columnid])[columnid]/8;
+        }
+
+        let fill = Transformer.fillConvert(null);
+        let font : Partial<Excel.Font> = {
+          name: cell?.ff as string,
+          family: 1,
+          size: cell?.fs,
+          color: {argb: cell?.fc?.replace('#', '')},
+          bold: cell.bl === 1,
+          italic: cell.it === 1,
+          underline: cell.un === 1,
+          strike: cell.cl === 1
+        }
+
+        const tb = parseInt(cell.tb as string);
+        const tr: ITextRotation = {
+          a: parseInt(cell.tr as string)
+        }
+
+        let alignment = Transformer.alignmentConvert(cell.vt, cell.ht, tb, tr);
+        let value : Excel.CellValue;
+   
+        let v = cell.v ?? "";
+        if (cell.f) {
+          value = { formula: cell.f, result: v };
+        } else {
+          value = v;
+        }
+        let target = worksheet.getCell(rowid + 1, columnid + 1);
+        const cellBorder = borderInfo.find(c=> c.value.row_index == rowid && c.value.col_index == columnid);
+        target.fill = fill ?? { type: 'pattern', pattern: 'none' };
+        target.font = font ?? { name: 'Arial', size: 10, color: { argb: '000000' } };
+        target.alignment = alignment ?? { vertical: 'top', horizontal: 'left', wrapText: false, textRotation: 0 };
+        target.value = value ?? '';
+        
+        target.border = {
+          top: Transformer.getBorderStyle(cellBorder?.value.t.style, cellBorder?.value.t.color),
+          bottom: Transformer.getBorderStyle(cellBorder?.value.b.style, cellBorder?.value.b.color),
+          left: Transformer.getBorderStyle(cellBorder?.value.l.style, cellBorder?.value.l.color),
+          right: Transformer.getBorderStyle(cellBorder?.value.r.style, cellBorder?.value.r.color),
+        }
         return true;
       })
     })
@@ -177,5 +277,28 @@ export class Transformer {
 
     return alignment;
    
+  }
+
+  static getBorderStyle (style: number, color: string) : Partial<Excel.Border> {
+    const relationship : {[key: number]: Excel.BorderStyle} = {
+      1: 'thin',
+      2: 'dotted',
+      3: 'hair',
+      4: 'medium',
+      5: 'double',
+      6: 'thick',
+      7: 'dashed',
+      8: 'dashDot',
+      9: 'dashDotDot',
+      10: 'slantDashDot',
+      11: 'mediumDashed',
+      12: 'mediumDashDotDot',
+      13: 'mediumDashDot'
+    }
+
+    return {
+      style: relationship[style] ?? 'thin',
+      color: {argb: color?.replace('#', '') ?? '000000'}
+    }
   }
 }

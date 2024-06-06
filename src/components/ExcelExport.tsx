@@ -1,16 +1,15 @@
 import { Button } from "antd";
 import { FunctionComponent } from "react";
-import { UniverSheetRef } from "./ExcelEditor";
 import * as Excel from "exceljs";
 import { Transformer } from "../Migrate";
 
 export const ExcelExport: FunctionComponent<{
-  workbook: UniverSheetRef | null;
-}> = ({ workbook }) => {
+  callback: any
+}> = ({ callback }) => {
   const handleClick = async () => {
-    const data = workbook?.getData();
+    const data = callback();
     if (!data) return;
-    const excelFile: Excel.Workbook = Transformer.transform(data);
+    const excelFile: Excel.Workbook = Transformer.transformFortuneSheet(data);
     const buffer = await excelFile.xlsx.writeBuffer();
     Transformer.saveFile(buffer, "工作表");
   };

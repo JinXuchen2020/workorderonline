@@ -30,7 +30,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "re
 import SaveExcelButton from "../plugins/SaveExcelButton";
 import { IUserRangeModel, IUpdatedCellProps, IUserRspModel } from "../models";
 import { useSearchParams } from "react-router-dom";
-import { saveExcel } from "../utils";
+import { saveUniverExcel } from "../utils/univerApi";
 
 export interface UniverSheetRef {
   getData: () => IWorkbookData;
@@ -183,7 +183,7 @@ export const UniverSheet = forwardRef<
       });
       const params = searchParams.toString().length > 0? `?${searchParams.toString()}` : ''
       const bookData = getData();
-      saveExcel(userInfo!, params, bookData, updatedCells)
+      saveUniverExcel(userInfo!, params, bookData, updatedCells)
       .then(() => {
         sessionStorage.setItem("isUpdated", "true");
       })

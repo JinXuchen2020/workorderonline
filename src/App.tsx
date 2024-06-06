@@ -6,26 +6,31 @@ import {
   ExcelExport,
   ExcelImport,
   HeaderCtl,
-  UniverSheet,
-  UniverSheetRef,
+  // UniverSheet,
+  // UniverSheetRef,
 } from "./components";
 import { getAllWorkOrders, getWorkOrders } from "./utils/api";
 import { useWeChatLogin } from "./hooks";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import queryString from 'query-string';
-import { ICellData, IObjectMatrixPrimitiveType, IWorkbookData, ObjectMatrix } from "@univerjs/core";
+//import { ICellData, IObjectMatrixPrimitiveType, IWorkbookData, ObjectMatrix } from "@univerjs/core";
 import { IUserRangeModel } from "./models";
 import { DateRangeSelector } from "./components/DateRangeSelector";
+import { FortuneSheet, FortuneSheetRef } from "./components/FortuneSheet";
+import { Sheet } from "@fortune-sheet/core";
 
 const App: React.FC = () => {
   const navigate = useNavigate();
-  const [data, setData] = useState<IWorkbookData>();
-  const univerRef = useRef<UniverSheetRef | null>(null);
+  //const [data, setData] = useState<IWorkbookData>();
+  const [data, setData] = useState<Sheet[]>();
+  //const univerRef = useRef<UniverSheetRef | null>(null);
+  const fortuneSheetRef = useRef<FortuneSheetRef | null>(null);
   const [searchParams, ] = useSearchParams();
   const [userRange,] = useState<IUserRangeModel[]>([])
   const {userInfo, loginError, handleLogin, handleLogout} = useWeChatLogin();
   const [messageApi, contextHolder] = message.useMessage();
-  const [dateRangeOpen, setDateRangeOpen] = useState(false);
+  const [dateRangeOpen, setDateRangeOpen] = useState(false);  
+  const [key, setKey] = React.useState<number>(1);
   let isLoading = false
 
   useEffect(() => {
@@ -70,34 +75,59 @@ const App: React.FC = () => {
           if (res.status === 200) {
             res.json().then((json) => {
               const keys = Object.keys(json.data);
-              let result = json.data[keys[0]] as IWorkbookData;
-              for (let sheetId in result.sheets) {
-                const originCellData = result.sheets[sheetId].cellData as IObjectMatrixPrimitiveType<ICellData>;
-                const matrixObject = new ObjectMatrix<ICellData>(originCellData);
-                
-                userRange.push({ userName: keys[0], sheetId: sheetId, startRow: 1, endRow: matrixObject.getLength() - 1 });
-
-                keys.forEach((booKey, bookIndex) => {
-                  if (bookIndex > 0) {
-                    const bookData = json.data[booKey].sheets[sheetId].cellData! as IObjectMatrixPrimitiveType<ICellData>                    
-                    const bookMatrixObject = new ObjectMatrix<ICellData>(bookData);
-                    const startRow = matrixObject.getLength();
-                    bookMatrixObject.forRow((row) => {
-                      if (row > 0) {
-                        matrixObject.setRow(startRow - 1 + row, bookMatrixObject.getRow(row)!);
-                      }
-                    });
-                    const endRow = matrixObject.getLength() - 1;
-
-                    userRange.push({ userName: booKey, sheetId: sheetId, startRow: startRow, endRow: endRow });
+              const firstSheets = json.data[keys[0]] as Sheet[];
+              let resultSheets : Sheet[] = [];
+              for (let i = 0; i < firstSheets.length; i++) {
+                let result: Sheet = {
+                  ...firstSheets[i]
+                }
+                const sheetId = result.id!;
+                let originCellData = result.celldata!;
+                if(originCellData) {
+                  let startRow = Math.min(...originCellData.map(c => c.r));
+                  let endRow = Math.max(...originCellData.map(c => c.r));
+                  if (endRow > 0) {
+                    startRow += 1;
+                    userRange.push({ userName: keys[0], sheetId: sheetId, startRow: startRow, endRow: endRow });
                   }
-                })
+                  keys.forEach((booKey, bookIndex) => {
+                    if (bookIndex > 0) {
+                      const bookData = (json.data[booKey] as Sheet[]).find(c=>c.id === sheetId)!.celldata!
+                      const bookConfig = (json.data[booKey] as Sheet[]).find(c=>c.id === sheetId)!.config!
+                      startRow = endRow + 1;
+                      const bookEndRow = Math.max(...bookData.map(c => c.r));
+                      if(bookEndRow > 0) {
+                        for(let j = 1; j <= bookEndRow; j++) {
+                          const rowData = bookData.filter(c => c.r === j);
+                          if(rowData.length > 0) {
+                            rowData.forEach(c => {
+                              c.r += startRow - 1;
+                            })
+                            originCellData = originCellData.concat(rowData);
+                          }
 
-                const cellData = matrixObject.getMatrix();
-                result.sheets[sheetId].cellData = cellData;
+                          const rowBorderInfo = bookConfig.borderInfo?.filter(c=>c.value.row_index === j)!;
+                          if (rowBorderInfo.length > 0) {
+                            rowBorderInfo.forEach((c: any) => {
+                              c.value.row_index += startRow - 1;
+                              result.config?.borderInfo?.push(c);
+                            })
+                          }
+                        }
+                      }
+
+                      endRow = Math.max(...originCellData.map(c => c.r));  
+                      userRange.push({ userName: booKey, sheetId: sheetId, startRow: startRow, endRow: endRow });
+                    }
+                  })
+
+                  result.row = endRow + 1;  
+                  result.celldata = originCellData;
+                  resultSheets.push(result);
+                }
               }
 
-              setData(result);
+              setData(resultSheets);
             });
           }
         }).catch((res: any) => {
@@ -114,7 +144,7 @@ const App: React.FC = () => {
       else {
         getWorkOrders(openid!, params).then((res) => {
           if (res.status === 200) {
-            res.json().then((json) => {
+            res.json().then((json) => {              
               setData(json.data);
               messageApi.destroy();
               isLoading = false;
@@ -139,7 +169,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const listener = () => {
-      univerRef.current?.autoSaveWorkbook(userInfo);
+      fortuneSheetRef.current?.autoSaveWorkbook(userInfo);
     };
     window.addEventListener('beforeunload', listener);
     return () => {
@@ -161,8 +191,11 @@ const App: React.FC = () => {
       {contextHolder}
       <div className="topBar">
         <Space>
-          <ExcelImport callback={setData} />
-          <ExcelExport workbook={univerRef.current} />
+          <ExcelImport callback={(data: Sheet[])=> {
+            setKey(key + 1);
+            setData(data)
+          }} />
+          <ExcelExport callback={()=> fortuneSheetRef.current?.getData()} />
           {/* <Select onChange={(_, Option) => handleTempLogin(Option)} style={{ width: 120 }}>
             <Select.Option value="用户1">用户1</Select.Option>
             <Select.Option value="用户2">用户2</Select.Option>
@@ -170,9 +203,10 @@ const App: React.FC = () => {
             <Select.Option value="主任">车间主任</Select.Option>
           </Select> */}
         </Space>
-        <HeaderCtl callback={()=> univerRef.current?.autoSaveWorkbook(userInfo)} />
+        <HeaderCtl callback={()=> fortuneSheetRef.current?.autoSaveWorkbook(userInfo)} />
       </div>
-      {data && <UniverSheet style={{ flex: 1 }} ref={univerRef} data={data} userInfo={userInfo} userRanges={userRange} messageApi={messageApi} />}      
+      {/* {data && <UniverSheet style={{ flex: 1 }} ref={univerRef} data={data} userInfo={userInfo} userRanges={userRange} messageApi={messageApi} />} */}
+      {data && <FortuneSheet ref={fortuneSheetRef} key={key} data={data} userInfo={userInfo} userRanges={userRange} messageApi={messageApi}/> }     
       <DateRangeSelector visible={dateRangeOpen} callback={setDateRangeOpen} />
     </div>
   );

@@ -17,7 +17,7 @@ import {
 import { IAccessor, Inject, Injector } from "@wendellhu/redi";
 import { SaveSingle } from "@univerjs/icons";
 import { IUpdatedCellProps } from "../models";
-import { saveExcel } from "../utils";
+import { saveUniverExcel } from "../utils/univerApi";
 
 /**
  * Export Excel Button Plugin
@@ -75,7 +75,7 @@ class SaveExcelButton extends Plugin {
         const params = this._config.searchParams.toString();
         const bookData = univerInstanceService.getCurrentUnitForType<Workbook>(UniverInstanceType.UNIVER_SHEET)!.getSnapshot();
         if (updatedCells && updatedCells.length > 0) {
-          saveExcel(this._config.userInfo, params, bookData, updatedCells).then(() => {
+          saveUniverExcel(this._config.userInfo, params, bookData, updatedCells).then(() => {
             notificationService.show({
               type: "success",
               content: `用户：${updatedCells.map(item => item.userName).join(",")}工单保存成功`,
