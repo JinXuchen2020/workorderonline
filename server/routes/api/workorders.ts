@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import fs from 'fs';
+import os from 'os';
 import { promisify } from 'util';
 const router = express.Router();
 
@@ -7,7 +8,7 @@ const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
 
 const readJsonFile = async (fileName: string) => {
-  let path = `./workorders/${fileName}.json`;
+  let path = `${os.homedir()}/workorders/${fileName}.json`;
   if(!fs.existsSync(path)){
     path = `./public/template.json`;
   }
@@ -17,9 +18,9 @@ const readJsonFile = async (fileName: string) => {
 
 const writeJsonFile = async (fileName: string, data: any) => {
   const dataStr = JSON.stringify(data);  
-  const filePath = `./workorders/${fileName}.json`;
+  const filePath = `${os.homedir()}/workorders/${fileName}.json`;
   if(!fs.existsSync(filePath)){
-    fs.mkdirSync('./workorders', { recursive: true });
+    fs.mkdirSync(`${os.homedir()}/workorders`, { recursive: true });
   }
   await writeFile(filePath, dataStr, 'utf8');
 };
@@ -29,7 +30,7 @@ router.get('/', async (req : Request, res : Response) => {
   fs.readdir('./workorders', async(err, files) => {
     if (files && files.length > 0) {
       Promise.all(files.sort().map(async file => {
-        const data = await readFile(`./workorders/${file}`, 'utf8');
+        const data = await readFile(`${os.homedir()}/workorders/${file}`, 'utf8');
         const paredData = JSON.parse(data);
         result[file.replace('.json', '')] = paredData;
       })).then(() => {      
