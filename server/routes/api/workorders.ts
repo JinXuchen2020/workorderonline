@@ -27,7 +27,7 @@ const writeJsonFile = async (fileName: string, data: any) => {
 
 router.get('/', async (req : Request, res : Response) => {
   let result: any = {}
-  fs.readdir('./workorders', async(err, files) => {
+  fs.readdir(`${os.homedir()}/workorders`, async(err, files) => {
     if (files && files.length > 0) {
       Promise.all(files.sort().map(async file => {
         const data = await readFile(`${os.homedir()}/workorders/${file}`, 'utf8');
