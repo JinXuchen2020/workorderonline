@@ -128,16 +128,16 @@ const App: React.FC = () => {
               }
 
               setData(resultSheets);
+              messageApi.destroy();
+              isLoading = false;
             });
           }
         }).catch((res: any) => {
           messageApi.open({
             type: 'error',
             content: `获取数据失败: ${res.message}`,
-            duration: 0,
+            duration: 5,
           });
-        }).finally(()=> {
-          messageApi.destroy();
           isLoading = false;
         });
       }
