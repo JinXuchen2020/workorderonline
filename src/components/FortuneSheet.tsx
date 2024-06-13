@@ -40,7 +40,7 @@ FortuneSheetRef,
       return;
     }
 
-    // if(sessionStorage.getItem("isUpdated") && sessionStorage.getItem("isUpdated") === "false") {      
+    if(sessionStorage.getItem("isUpdated") && sessionStorage.getItem("isUpdated") === "false") {      
       messageApi.open({
         type: 'loading',
         content: '正在保存...',
@@ -105,7 +105,7 @@ FortuneSheetRef,
             messageApi.destroy();
           });
       }
-    // }
+    }
   }
 
   /**
@@ -136,6 +136,12 @@ FortuneSheetRef,
             for (let c = 0; c < sheet.data[r].length; c++)
                 if (typeof sheet.data[r][c]?.ct === 'object' && sheet.data[r][c]?.ct?.t !== 's')
                   workbookRef.current?.setCellFormat(r, c, 'ct', sheet.data[r][c]?.ct, { id: sheet.id });
+        }
+      }}
+      onOp={() => {
+        if(!sessionStorage.getItem("isUpdated") || sessionStorage.getItem("isUpdated") === "true") 
+        {
+          sessionStorage.setItem("isUpdated", "false");
         }
       }}
       />
