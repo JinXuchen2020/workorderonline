@@ -37,8 +37,8 @@ export const Login : React.FC = () => {
         getAuthUrl().then(rsp => {
           rsp.json().then(data => {
             const authUrl = data.data as string;
-            //window.location.href = authUrl;
-            sessionStorage.setItem('authUrl', authUrl);
+            window.location.href = authUrl;
+            // sessionStorage.setItem('authUrl', authUrl);
           })
         })
       }
