@@ -71,7 +71,7 @@ router.get('/qrcode', (req : Request, res : Response) => {
 });
 
 router.get('/authurl', (req : Request, res : Response) => {
-  const data = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${process.env.WE_CHAT_CORP_ID}&redirect_uri=${process.env.WE_CHAT_REDIRECT_URI}&response_type=code&scope=snsapi_base&state=STATE#wechat_redirect`;
+  const data = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${process.env.WE_CHAT_CORP_ID}&redirect_uri=${process.env.WE_CHAT_REDIRECT_URI}&response_type=code&scope=snsapi_login&state=STATE#wechat_redirect`;
   res.json({
     data: data,
     code: 200,
