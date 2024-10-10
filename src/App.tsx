@@ -184,6 +184,7 @@ const App: React.FC = () => {
         content: '登录失败，请重试',
         duration: 0,
       });
+      navigate('/login')
     }
   }, [loginError]);
   return (
@@ -203,7 +204,7 @@ const App: React.FC = () => {
             <Select.Option value="主任">车间主任</Select.Option>
           </Select> */}
         </Space>
-        <HeaderCtl callback={()=> fortuneSheetRef.current?.autoSaveWorkbook(userInfo)} />
+        <HeaderCtl userInfo={userInfo} callback={()=> fortuneSheetRef.current?.autoSaveWorkbook(userInfo)} />
       </div>
       {/* {data && <UniverSheet style={{ flex: 1 }} ref={univerRef} data={data} userInfo={userInfo} userRanges={userRange} messageApi={messageApi} />} */}
       {data && <FortuneSheet ref={fortuneSheetRef} key={key} data={data} userInfo={userInfo} userRanges={userRange} messageApi={messageApi}/> }     

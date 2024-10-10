@@ -8,7 +8,7 @@ const agentId = process.env.WE_CHAT_AGENT_ID;
 const redirectUri = process.env.WE_CHAT_REDIRECT_URI;
 
 const getAccessToken = async (code : string) => {
-  const getTokenUrl=`https://api.weixin.qq.com/sns/oauth2/access_token?appid=${appId}&secret=${appSecret}&code=${code}&grant_type=authorization_code`;
+  const getTokenUrl=`https://api.weixin.qq.com/sns/oauth2/access_token?appid=${process.env.WE_CHAT_CORP_ID}&secret=${process.env.WE_CHAT_CORP_SECRET}&code=${code}&grant_type=authorization_code`;
 
   const tokenRsp = await fetch(getTokenUrl, {
     method: 'GET',
@@ -61,7 +61,7 @@ const getUserInfo = async (accessToken : string, openid : string) => {
 }
 
 router.get('/qrcode', (req : Request, res : Response) => {
-  const data = `https://open.weixin.qq.com/connect/qrconnect?appid=${appId}&redirect_uri=${redirectUri}&response_type=code&scope=SCOPE&state=STATE#wechat_redirect`;
+  const data = `https://open.weixin.qq.com/connect/qrconnect?appid=${process.env.WE_CHAT_CORP_ID}&redirect_uri=${process.env.WE_CHAT_REDIRECT_URI}&response_type=code&scope=snsapi_login&state=STATE#wechat_redirect`;
   res.json({
     data: data,
     code: 200,
@@ -71,7 +71,7 @@ router.get('/qrcode', (req : Request, res : Response) => {
 });
 
 router.get('/authurl', (req : Request, res : Response) => {
-  const data = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${appId}&redirect_uri=${redirectUri}&response_type=code&scope=snsapi_base&state=STATE#wechat_redirect`;
+  const data = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${process.env.WE_CHAT_CORP_ID}&redirect_uri=${process.env.WE_CHAT_REDIRECT_URI}&response_type=code&scope=snsapi_base&state=STATE#wechat_redirect`;
   res.json({
     data: data,
     code: 200,
@@ -80,10 +80,10 @@ router.get('/authurl', (req : Request, res : Response) => {
   });
 });
 
-router.post('/login', async (req : Request, res : Response) => {
+router.get('/login', async (req : Request, res : Response) => {
   const { code } = req.query;
   const accessToken = await getAccessToken(code as string);
-  if (accessToken.errcode){
+  if (!accessToken || accessToken.errcode){
     res.json({
       data: null,
       code: 500,

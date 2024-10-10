@@ -4,9 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { UserOutlined } from "@ant-design/icons";
 import { useWeChatLogin } from '../hooks';
 
-export const HeaderCtl: React.FunctionComponent<{callback: any}> = ({callback}) => {
+export const HeaderCtl: React.FunctionComponent<{userInfo: any, callback: any}> = ({userInfo, callback}) => {
   let navigate = useNavigate()
-  const {userInfo, handleLogout} = useWeChatLogin();
+  const {handleLogout} = useWeChatLogin();
 
   const handleLoginOut = () => {
     callback();

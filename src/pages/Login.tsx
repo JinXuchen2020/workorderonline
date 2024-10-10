@@ -1,4 +1,4 @@
-import { Button, Col, Form, Input, Row, Space } from 'antd';
+import { Col, Row } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAuthUrl, getQRCode } from '../utils/api';
@@ -7,27 +7,26 @@ import { useWeChatLogin } from '../hooks';
 
 export const Login : React.FC = () => {
   const navigate = useNavigate();
-  const [form] = Form.useForm<{ 'id': any }>();
+  // const [form] = Form.useForm<{ 'id': any }>();
 
-  const id = Form.useWatch('id', form);
+  // const id = Form.useWatch('id', form);
 
-  const [_, setQrCodeUrl] = useState('');
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
 
-  const {isLoggedIn, handleTempLogin} = useWeChatLogin();
+  const {isLoggedIn } = useWeChatLogin();
 
-  const handleLogin = async () => {
-    await form.validateFields();
-    if(id) 
-    {
-      const option ={
-        nickname: id,
-        openid: id
-      }
-      await handleTempLogin(option);
-      navigate('/');
-    }
-  }
-
+  // const handleLogin = async () => {
+  //   await form.validateFields();
+  //   if(id) 
+  //   {
+  //     const option ={
+  //       nickname: id,
+  //       openid: id
+  //     }
+  //     await handleTempLogin(option);
+  //     navigate('/');
+  //   }
+  // }
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -56,8 +55,8 @@ export const Login : React.FC = () => {
   return (
     <div className='preview-result' style={{textAlign: 'left'}}>
       <Row>
-        <Col span={24}>
-          <Form
+        <Col span={24} style={{ display: 'flex', justifyContent: 'center' }}>
+          {/* <Form
             form={form}
             name='login'
             labelCol={{span: 9}}
@@ -73,11 +72,11 @@ export const Login : React.FC = () => {
                 <Button type='primary' htmlType='submit'>登陆</Button>
               </Space>
             </Form.Item>
-          </Form>
-          {/* <div id='codeArea'>
+          </Form> */}
+          <div id='codeArea'>
             <iframe title='login' frameBorder='0' sandbox='allow-scripts allow-same-origin allow-top-navigation' scrolling='no'  
             src={qrCodeUrl} height='400'></iframe>
-          </div> */}
+          </div>
         </Col>
       </Row>
     </div>
