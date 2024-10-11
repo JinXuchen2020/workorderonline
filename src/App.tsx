@@ -194,7 +194,8 @@ const App: React.FC = () => {
         <Space>
           <ExcelImport callback={(data: Sheet[])=> {
             setKey(key + 1);
-            setData(data)
+            setData(data);
+            sessionStorage.setItem("isUpdated", "false");
           }} />
           <ExcelExport callback={()=> fortuneSheetRef.current?.getData()} />
           {/* <Select onChange={(_, Option) => handleTempLogin(Option)} style={{ width: 120 }}>
