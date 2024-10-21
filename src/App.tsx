@@ -9,7 +9,7 @@ import {
   // UniverSheet,
   // UniverSheetRef,
 } from "./components";
-import { getAllWorkOrders, getWorkOrders } from "./utils/api";
+import { getAllWorkOrders, getMe, getWorkOrders } from "./utils/api";
 import { useWeChatLogin } from "./hooks";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import queryString from 'query-string';
@@ -27,7 +27,7 @@ const App: React.FC = () => {
   const fortuneSheetRef = useRef<FortuneSheetRef | null>(null);
   const [searchParams, ] = useSearchParams();
   const [userRange,] = useState<IUserRangeModel[]>([])
-  const {userInfo, loginError, isLoggedIn, handleLogin, handleLogout, getUserInfo} = useWeChatLogin();
+  const {userInfo, loginError, isLoggedIn, handleLogin, handleLogout} = useWeChatLogin();
   const [messageApi, contextHolder] = message.useMessage();
   const [dateRangeOpen, setDateRangeOpen] = useState(false);  
   const [key, setKey] = React.useState<number>(1);
@@ -53,7 +53,9 @@ const App: React.FC = () => {
       }
     }
     else {
-      getUserInfo().then((currentUserInfo) => {
+      getMe().then(async (rsp) => {
+        const result  = await rsp.json();
+        const currentUserInfo = result.data as IUserRspModel;
         if(currentUserInfo.openid){
           messageApi.open({
             type: 'loading',
@@ -63,10 +65,9 @@ const App: React.FC = () => {
           getData(currentUserInfo);
         }
         else {
-          const token = sessionStorage.getItem("token");
           messageApi.open({
             type: 'error',
-            content: `${token} ${userInfo?.nickname} 登录错误...${currentUserInfo.nickname}`,
+            content: `${userInfo?.nickname} 登录错误...${currentUserInfo.nickname}`,
             duration: 5000,
           });
         }
