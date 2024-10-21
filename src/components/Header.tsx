@@ -35,7 +35,8 @@ export const HeaderCtl: React.FunctionComponent<{userInfo: any, callback: any}> 
               userInfo === undefined ? undefined
                 : (
                 <>
-                  <Avatar onClick={handleLoginOut} size="large" icon={<UserOutlined />} />
+                  <Avatar onClick={handleLoginOut} size="large" icon={<UserOutlined />} />                  
+                  <label>{userInfo.nickname}</label>
                 </>)
             }
           </Space>

@@ -27,7 +27,7 @@ const App: React.FC = () => {
   const fortuneSheetRef = useRef<FortuneSheetRef | null>(null);
   const [searchParams, ] = useSearchParams();
   const [userRange,] = useState<IUserRangeModel[]>([])
-  const {userInfo, loginError, handleLogin, handleLogout} = useWeChatLogin();
+  const {userInfo, loginError, handleLogin, handleLogout, getUserInfo} = useWeChatLogin();
   const [messageApi, contextHolder] = message.useMessage();
   const [dateRangeOpen, setDateRangeOpen] = useState(false);  
   const [key, setKey] = React.useState<number>(1);
@@ -52,11 +52,12 @@ const App: React.FC = () => {
       }
     }
     else {
-      getData();
-    }    
+      const currentUserInfo = getUserInfo();
+      getData(currentUserInfo);
+    }
   }, [userInfo?.openid]);
 
-  const getData = () => {
+  const getData = (userInfo: any) => {
     const { role, openid, exp } = userInfo!
     const isTimeOut = new Date().getTime() / 1000 > exp
     if(isTimeOut) {
