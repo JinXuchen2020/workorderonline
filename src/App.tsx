@@ -14,7 +14,7 @@ import { useWeChatLogin } from "./hooks";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import queryString from 'query-string';
 //import { ICellData, IObjectMatrixPrimitiveType, IWorkbookData, ObjectMatrix } from "@univerjs/core";
-import { IUserRangeModel } from "./models";
+import { IUserRangeModel, IUserRspModel } from "./models";
 import { DateRangeSelector } from "./components/DateRangeSelector";
 import { FortuneSheet, FortuneSheetRef } from "./components/FortuneSheet";
 import { Sheet } from "@fortune-sheet/core";
@@ -27,14 +27,15 @@ const App: React.FC = () => {
   const fortuneSheetRef = useRef<FortuneSheetRef | null>(null);
   const [searchParams, ] = useSearchParams();
   const [userRange,] = useState<IUserRangeModel[]>([])
-  const {userInfo, loginError, handleLogin, handleLogout, getUserInfo} = useWeChatLogin();
+  const {userInfo, loginError, isLoggedIn, handleLogin, handleLogout, getUserInfo} = useWeChatLogin();
   const [messageApi, contextHolder] = message.useMessage();
   const [dateRangeOpen, setDateRangeOpen] = useState(false);  
   const [key, setKey] = React.useState<number>(1);
+  //const [userInfo, setUserInfo] = React.useState<IUserRspModel>();
   //let isLoading = false
 
   useEffect(() => {
-    if (!userInfo) {
+    if (!isLoggedIn) {
       const { code } = queryString.parse(searchParams.toString())
       if(code === undefined) {
         navigate('/login')
@@ -52,12 +53,18 @@ const App: React.FC = () => {
       }
     }
     else {
-      const currentUserInfo = getUserInfo();
-      getData(currentUserInfo);
+      getUserInfo().then((currentUserInfo) => {
+        messageApi.open({
+          type: 'loading',
+          content: `${isLoggedIn} ${userInfo?.nickname} 正在登录...${currentUserInfo.nickname}`,
+          duration: 0,
+        });
+        getData(currentUserInfo);
+      });
     }
-  }, [userInfo?.openid]);
+  }, [isLoggedIn]);
 
-  const getData = (userInfo: any) => {
+  const getData = (userInfo: IUserRspModel) => {
     const { role, openid, exp } = userInfo!
     const isTimeOut = new Date().getTime() / 1000 > exp
     if(isTimeOut) {
