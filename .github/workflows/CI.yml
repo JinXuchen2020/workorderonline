@@ -19,6 +19,8 @@ jobs:
         run: |
           cd server
           echo "ADMIN_USER_ID=${{ secrets.ADMIN_USER_ID }}" >> .env
+          echo "WE_CHAT_CORP_SECRET=${{ secrets.WE_CHAT_CORP_SECRET }}" >> .env
+          echo "WE_CHAT_AGENT_SECRET=${{ secrets.WE_CHAT_AGENT_SECRET }}" >> .env
       - name: Install dependencies
         run: npm install
       - name: Build site
