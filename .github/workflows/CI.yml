@@ -18,9 +18,9 @@ jobs:
       - name: Update .env file
         run: |
           cd server
-          echo "\nADMIN_USER_ID='${{ secrets.ADMIN_USER_ID }}'" >> .env
-          echo "\nWE_CHAT_CORP_SECRET='${{ secrets.WE_CHAT_CORP_SECRET }}'" >> .env
-          echo "\nWE_CHAT_AGENT_SECRET='${{ secrets.WE_CHAT_AGENT_SECRET }}'" >> .env
+          echo "\nADMIN_USER_ID=${{ secrets.ADMIN_USER_ID }}" >> .env
+          echo "\nWE_CHAT_CORP_SECRET=${{ secrets.WE_CHAT_CORP_SECRET }}" >> .env
+          echo "\nWE_CHAT_AGENT_SECRET=${{ secrets.WE_CHAT_AGENT_SECRET }}" >> .env
           cat -n .env
       - name: Install dependencies
         run: npm install
