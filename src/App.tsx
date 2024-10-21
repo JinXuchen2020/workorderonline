@@ -31,7 +31,7 @@ const App: React.FC = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const [dateRangeOpen, setDateRangeOpen] = useState(false);  
   const [key, setKey] = React.useState<number>(1);
-  let isLoading = false
+  //let isLoading = false
 
   useEffect(() => {
     if (!userInfo) {
@@ -46,7 +46,7 @@ const App: React.FC = () => {
           duration: 0,
         });
         handleLogin(code as string).then(() => {
-          getData();
+          navigate('/');
           messageApi.destroy();
         });
       }
@@ -64,16 +64,16 @@ const App: React.FC = () => {
       navigate('/login')
     }
 
-    if (isLoading) {
-      return;
-    }
+    // if (isLoading) {
+    //   return;
+    // }
     messageApi.open({
       type: 'loading',
       content: '正在获取数据...',
       duration: 0,
     });
 
-    isLoading = true;
+    // isLoading = true;
     const params = searchParams.toString().length > 0? `?${searchParams.toString()}` : ''
     if (role === "admin") {
       getAllWorkOrders(params).then((res) => {
@@ -134,7 +134,7 @@ const App: React.FC = () => {
 
             setData(resultSheets);
             messageApi.destroy();
-            isLoading = false;
+            // isLoading = false;
           });
         }
       }).catch((res: any) => {
@@ -143,7 +143,7 @@ const App: React.FC = () => {
           content: `获取数据失败: ${res.message}`,
           duration: 5,
         });
-        isLoading = false;
+        // isLoading = false;
       });
     }
     else {
@@ -152,7 +152,7 @@ const App: React.FC = () => {
           res.json().then((json) => {              
             setData(json.data);
             messageApi.destroy();
-            isLoading = false;
+            // isLoading = false;
           });
         }
       });
