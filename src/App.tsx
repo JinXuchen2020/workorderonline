@@ -63,9 +63,10 @@ const App: React.FC = () => {
           getData(currentUserInfo);
         }
         else {
+          const token = sessionStorage.getItem("token");
           messageApi.open({
             type: 'error',
-            content: `${isLoggedIn} ${userInfo?.nickname} 登录错误...${currentUserInfo.nickname}`,
+            content: `${token} ${userInfo?.nickname} 登录错误...${currentUserInfo.nickname}`,
             duration: 5000,
           });
         }
