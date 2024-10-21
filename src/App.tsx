@@ -46,114 +46,118 @@ const App: React.FC = () => {
           duration: 0,
         });
         handleLogin(code as string).then(() => {
-          navigate('/');
+          getData();
           messageApi.destroy();
         });
       }
     }
     else {
-      const { role, openid, exp } = userInfo!
-      const isTimeOut = new Date().getTime() / 1000 > exp
-      if(isTimeOut) {
-        handleLogout()
-        navigate('/login')
-      }
-
-      if (isLoading) {
-        return;
-      }
-      messageApi.open({
-        type: 'loading',
-        content: '正在获取数据...',
-        duration: 0,
-      });
-
-      isLoading = true;
-      const params = searchParams.toString().length > 0? `?${searchParams.toString()}` : ''
-      if (role === "admin") {
-        getAllWorkOrders(params).then((res) => {
-          if (res.status === 200) {
-            res.json().then((json) => {
-              const keys = Object.keys(json.data);
-              const firstSheets = json.data[keys[0]] as Sheet[];
-              let resultSheets : Sheet[] = [];
-              for (let i = 0; i < firstSheets.length; i++) {
-                let result: Sheet = {
-                  ...firstSheets[i]
-                }
-                const sheetId = result.id!;
-                let originCellData = result.celldata!;
-                if(originCellData) {
-                  let startRow = Math.min(...originCellData.map(c => c.r));
-                  let endRow = Math.max(...originCellData.map(c => c.r));
-                  if (endRow > 0) {
-                    startRow += 1;
-                    userRange.push({ userName: keys[0], sheetId: sheetId, startRow: startRow, endRow: endRow });
-                  }
-                  keys.forEach((booKey, bookIndex) => {
-                    if (bookIndex > 0) {
-                      const bookData = (json.data[booKey] as Sheet[]).find(c=>c.id === sheetId)!.celldata!
-                      const bookConfig = (json.data[booKey] as Sheet[]).find(c=>c.id === sheetId)!.config!
-                      startRow = endRow + 1;
-                      const bookEndRow = Math.max(...bookData.map(c => c.r));
-                      if(bookEndRow > 0) {
-                        for(let j = 1; j <= bookEndRow; j++) {
-                          const rowData = bookData.filter(c => c.r === j);
-                          if(rowData.length > 0) {
-                            rowData.forEach(c => {
-                              c.r += startRow - 1;
-                            })
-                            originCellData = originCellData.concat(rowData);
-                          }
-
-                          const rowBorderInfo = bookConfig.borderInfo?.filter(c=>c.value.row_index === j)!;
-                          if (rowBorderInfo.length > 0) {
-                            rowBorderInfo.forEach((c: any) => {
-                              c.value.row_index += startRow - 1;
-                              result.config?.borderInfo?.push(c);
-                            })
-                          }
-                        }
-                      }
-
-                      endRow = Math.max(...originCellData.map(c => c.r));  
-                      userRange.push({ userName: booKey, sheetId: sheetId, startRow: startRow, endRow: endRow });
-                    }
-                  })
-
-                  result.row = endRow + 1;  
-                  result.celldata = originCellData;
-                  resultSheets.push(result);
-                }
-              }
-
-              setData(resultSheets);
-              messageApi.destroy();
-              isLoading = false;
-            });
-          }
-        }).catch((res: any) => {
-          messageApi.open({
-            type: 'error',
-            content: `获取数据失败: ${res.message}`,
-            duration: 5,
-          });
-          isLoading = false;
-        });
-      }
-      else {
-        getWorkOrders(openid!, params).then((res) => {
-          if (res.status === 200) {
-            res.json().then((json) => {              
-              setData(json.data);
-              messageApi.destroy();
-              isLoading = false;
-            });
-          }
-        });
-      }
+      getData();
     }    
   }, [userInfo?.openid]);
+
+  const getData = () => {
+    const { role, openid, exp } = userInfo!
+    const isTimeOut = new Date().getTime() / 1000 > exp
+    if(isTimeOut) {
+      handleLogout()
+      navigate('/login')
+    }
+
+    if (isLoading) {
+      return;
+    }
+    messageApi.open({
+      type: 'loading',
+      content: '正在获取数据...',
+      duration: 0,
+    });
+
+    isLoading = true;
+    const params = searchParams.toString().length > 0? `?${searchParams.toString()}` : ''
+    if (role === "admin") {
+      getAllWorkOrders(params).then((res) => {
+        if (res.status === 200) {
+          res.json().then((json) => {
+            const keys = Object.keys(json.data);
+            const firstSheets = json.data[keys[0]] as Sheet[];
+            let resultSheets : Sheet[] = [];
+            for (let i = 0; i < firstSheets.length; i++) {
+              let result: Sheet = {
+                ...firstSheets[i]
+              }
+              const sheetId = result.id!;
+              let originCellData = result.celldata!;
+              if(originCellData) {
+                let startRow = Math.min(...originCellData.map(c => c.r));
+                let endRow = Math.max(...originCellData.map(c => c.r));
+                if (endRow > 0) {
+                  startRow += 1;
+                  userRange.push({ userName: keys[0], sheetId: sheetId, startRow: startRow, endRow: endRow });
+                }
+                keys.forEach((booKey, bookIndex) => {
+                  if (bookIndex > 0) {
+                    const bookData = (json.data[booKey] as Sheet[]).find(c=>c.id === sheetId)!.celldata!
+                    const bookConfig = (json.data[booKey] as Sheet[]).find(c=>c.id === sheetId)!.config!
+                    startRow = endRow + 1;
+                    const bookEndRow = Math.max(...bookData.map(c => c.r));
+                    if(bookEndRow > 0) {
+                      for(let j = 1; j <= bookEndRow; j++) {
+                        const rowData = bookData.filter(c => c.r === j);
+                        if(rowData.length > 0) {
+                          rowData.forEach(c => {
+                            c.r += startRow - 1;
+                          })
+                          originCellData = originCellData.concat(rowData);
+                        }
+
+                        const rowBorderInfo = bookConfig.borderInfo?.filter(c=>c.value.row_index === j)!;
+                        if (rowBorderInfo.length > 0) {
+                          rowBorderInfo.forEach((c: any) => {
+                            c.value.row_index += startRow - 1;
+                            result.config?.borderInfo?.push(c);
+                          })
+                        }
+                      }
+                    }
+
+                    endRow = Math.max(...originCellData.map(c => c.r));  
+                    userRange.push({ userName: booKey, sheetId: sheetId, startRow: startRow, endRow: endRow });
+                  }
+                })
+
+                result.row = endRow + 1;  
+                result.celldata = originCellData;
+                resultSheets.push(result);
+              }
+            }
+
+            setData(resultSheets);
+            messageApi.destroy();
+            isLoading = false;
+          });
+        }
+      }).catch((res: any) => {
+        messageApi.open({
+          type: 'error',
+          content: `获取数据失败: ${res.message}`,
+          duration: 5,
+        });
+        isLoading = false;
+      });
+    }
+    else {
+      getWorkOrders(openid!, params).then((res) => {
+        if (res.status === 200) {
+          res.json().then((json) => {              
+            setData(json.data);
+            messageApi.destroy();
+            isLoading = false;
+          });
+        }
+      });
+    }
+  }
 
   useEffect(() => {
     if (userInfo) {

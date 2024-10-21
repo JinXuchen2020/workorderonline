@@ -73,6 +73,11 @@ export const useWeChatLogin = ()=> {
     }    
   },[userInfoStr])
 
+  const getUserInfo = async () => {
+    const user = (await (await getMe()).json()).data as IUserRspModel;
+    return user;
+  }
+
   const handleLogout = () => {
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("userInfo");
