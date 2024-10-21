@@ -54,12 +54,21 @@ const App: React.FC = () => {
     }
     else {
       getUserInfo().then((currentUserInfo) => {
-        messageApi.open({
-          type: 'loading',
-          content: `${isLoggedIn} ${userInfo?.nickname} 正在登录...${currentUserInfo.nickname}`,
-          duration: 0,
-        });
-        getData(currentUserInfo);
+        if(currentUserInfo.openid){
+          messageApi.open({
+            type: 'loading',
+            content: `${isLoggedIn} ${userInfo?.nickname} 正在登录...${currentUserInfo.nickname}`,
+            duration: 0,
+          });
+          getData(currentUserInfo);
+        }
+        else {
+          messageApi.open({
+            type: 'error',
+            content: `${isLoggedIn} ${userInfo?.nickname} 登录错误...${currentUserInfo.nickname}`,
+            duration: 5000,
+          });
+        }
       });
     }
   }, [isLoggedIn]);
@@ -141,7 +150,7 @@ const App: React.FC = () => {
             }
 
             setData(resultSheets);
-            messageApi.destroy();
+            // messageApi.destroy();
             // isLoading = false;
           });
         }
@@ -159,7 +168,7 @@ const App: React.FC = () => {
         if (res.status === 200) {
           res.json().then((json) => {              
             setData(json.data);
-            messageApi.destroy();
+            // messageApi.destroy();
             // isLoading = false;
           });
         }
