@@ -1,3 +1,4 @@
+import { isWxBrowser } from ".";
 import { IUserReqModel } from "../models";
 
 const apiUrl = import.meta.env.VITE_API_URL;
@@ -49,7 +50,8 @@ export const getAuthUrl = () => {
 };
 
 export const loginWechatUser = (code: string) => {
-  return fetch(getUrl(`/api/wechat/login?code=${code}`), {
+  const isWxbrowser = isWxBrowser();
+  return fetch(getUrl(`/api/wechat/login?code=${code}&isWxbrowser=${isWxbrowser}`), {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

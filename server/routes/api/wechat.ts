@@ -7,8 +7,12 @@ const appSecret = process.env.WE_CHAT_CORP_SECRET;
 const agentId = process.env.WE_CHAT_AGENT_ID;
 const redirectUri = process.env.WE_CHAT_REDIRECT_URI;
 
-const getAccessToken = async (code : string) => {
-  const getTokenUrl=`https://api.weixin.qq.com/sns/oauth2/access_token?appid=${process.env.WE_CHAT_CORP_ID}&secret=${process.env.WE_CHAT_CORP_SECRET}&code=${code}&grant_type=authorization_code`;
+const getAccessToken = async (code : string, isWxBrowser : string) => {
+  let getTokenUrl=`https://api.weixin.qq.com/sns/oauth2/access_token?appid=${process.env.WE_CHAT_CORP_ID}&secret=${process.env.WE_CHAT_CORP_SECRET}&code=${code}&grant_type=authorization_code`;
+
+  if (isWxBrowser === 'true') {
+    getTokenUrl=`https://api.weixin.qq.com/sns/oauth2/access_token?appid=${process.env.WE_CHAT_AGENT_ID}&secret=${process.env.WE_CHAT_AGENT_SECRET}&code=${code}&grant_type=authorization_code`;
+  }
 
   const tokenRsp = await fetch(getTokenUrl, {
     method: 'GET',
@@ -71,7 +75,7 @@ router.get('/qrcode', (req : Request, res : Response) => {
 });
 
 router.get('/authurl', (req : Request, res : Response) => {
-  const data = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${process.env.WE_CHAT_CORP_ID}&redirect_uri=${process.env.WE_CHAT_REDIRECT_URI}&response_type=code&scope=snsapi_login&state=STATE#wechat_redirect`;
+  const data = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${process.env.WE_CHAT_AGENT_ID}&redirect_uri=${process.env.WE_CHAT_REDIRECT_URI}&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect`;
   res.json({
     data: data,
     code: 200,
@@ -81,8 +85,8 @@ router.get('/authurl', (req : Request, res : Response) => {
 });
 
 router.get('/login', async (req : Request, res : Response) => {
-  const { code } = req.query;
-  const accessToken = await getAccessToken(code as string);
+  const { code, isWxBrowser } = req.query;
+  const accessToken = await getAccessToken(code as string, isWxBrowser as string);
   if (!accessToken || accessToken.errcode){
     res.json({
       data: null,

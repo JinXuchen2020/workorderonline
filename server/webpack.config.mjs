@@ -44,7 +44,9 @@ const config = {
       'process.env.ADMIN_USER_ID': JSON.stringify(process.env.ADMIN_USER_ID),
       'process.env.WE_CHAT_CORP_ID': JSON.stringify(process.env.WE_CHAT_CORP_ID),
       'process.env.WE_CHAT_REDIRECT_URI': JSON.stringify(process.env.WE_CHAT_REDIRECT_URI),
-      'process.env.WE_CHAT_CORP_SECRET': JSON.stringify(process.env.WE_CHAT_CORP_SECRET)
+      'process.env.WE_CHAT_CORP_SECRET': JSON.stringify(process.env.WE_CHAT_CORP_SECRET),
+      'process.env.WE_CHAT_AGENT_ID': JSON.stringify(process.env.WE_CHAT_AGENT_ID),
+      'process.env.WE_CHAT_AGENT_SECRET': JSON.stringify(process.env.WE_CHAT_AGENT_SECRET)
     })
   ]
 };
