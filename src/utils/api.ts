@@ -51,7 +51,7 @@ export const getAuthUrl = () => {
 
 export const loginWechatUser = (code: string) => {
   const isWxbrowser = isWxBrowser();
-  return fetch(getUrl(`/api/wechat/login?code=${code}&isWxbrowser=${isWxbrowser}`), {
+  return fetch(getUrl(`/api/wechat/login?code=${code}&isWxBrowser=${isWxbrowser}`), {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
