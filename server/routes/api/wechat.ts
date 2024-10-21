@@ -86,8 +86,9 @@ router.get('/authurl', (req : Request, res : Response) => {
 
 router.get('/login', async (req : Request, res : Response) => {
   const { code, isWxBrowser } = req.query;
+  console.log(code, isWxBrowser);
   const accessToken = await getAccessToken(code as string, isWxBrowser as string);
-  if (!accessToken || accessToken.errcode){
+  if (!accessToken || accessToken.errcode || !accessToken.openid){
     res.json({
       data: null,
       code: 500,
