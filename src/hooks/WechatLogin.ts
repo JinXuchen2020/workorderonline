@@ -92,5 +92,6 @@ export const useWeChatLogin = ()=> {
     handleLogin,
     handleTempLogin,
     handleLogout,
+    getUserInfo
   };
 }
