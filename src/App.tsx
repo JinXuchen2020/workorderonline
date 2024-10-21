@@ -9,7 +9,7 @@ import {
   // UniverSheet,
   // UniverSheetRef,
 } from "./components";
-import { getAllWorkOrders, getMe, getWorkOrders } from "./utils/api";
+import { getAllWorkOrders, getWorkOrders } from "./utils/api";
 import { useWeChatLogin } from "./hooks";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import queryString from 'query-string';
@@ -27,15 +27,14 @@ const App: React.FC = () => {
   const fortuneSheetRef = useRef<FortuneSheetRef | null>(null);
   const [searchParams, ] = useSearchParams();
   const [userRange,] = useState<IUserRangeModel[]>([])
-  const {userInfo, loginError, isLoggedIn, handleLogin, handleLogout} = useWeChatLogin();
+  const {userInfo, loginError, handleLogin, handleLogout} = useWeChatLogin();
   const [messageApi, contextHolder] = message.useMessage();
   const [dateRangeOpen, setDateRangeOpen] = useState(false);  
   const [key, setKey] = React.useState<number>(1);
-  //const [userInfo, setUserInfo] = React.useState<IUserRspModel>();
-  //let isLoading = false
+  let isLoading = false
 
   useEffect(() => {
-    if (!isLoggedIn) {
+    if (!userInfo) {
       const { code } = queryString.parse(searchParams.toString())
       if(code === undefined) {
         navigate('/login')
@@ -53,46 +52,28 @@ const App: React.FC = () => {
       }
     }
     else {
-      getMe().then(async (rsp) => {
-        const result  = await rsp.json();
-        const currentUserInfo = result.data as IUserRspModel;
-        if(currentUserInfo.openid){
-          messageApi.open({
-            type: 'loading',
-            content: `${isLoggedIn} ${userInfo?.nickname} 正在登录...${currentUserInfo.nickname}`,
-            duration: 0,
-          });
-          getData(currentUserInfo);
-        }
-        else {
-          messageApi.open({
-            type: 'error',
-            content: `${userInfo?.nickname} 登录错误...${currentUserInfo.nickname}`,
-            duration: 5000,
-          });
-        }
-      });
+      getData(userInfo);
     }
-  }, [isLoggedIn]);
+  }, [userInfo?.openid]);
 
-  const getData = (userInfo: IUserRspModel) => {
-    const { role, openid, exp } = userInfo!
+  const getData = (userInfo: IUserRspModel | undefined) => {
+    const { role, openid, exp, nickname } = userInfo!
     const isTimeOut = new Date().getTime() / 1000 > exp
     if(isTimeOut) {
       handleLogout()
       navigate('/login')
     }
 
-    // if (isLoading) {
-    //   return;
-    // }
+    if (isLoading) {
+      return;
+    }
     messageApi.open({
       type: 'loading',
-      content: '正在获取数据...',
+      content: `正在获取用户${nickname}数据...`,
       duration: 0,
     });
 
-    // isLoading = true;
+    isLoading = true;
     const params = searchParams.toString().length > 0? `?${searchParams.toString()}` : ''
     if (role === "admin") {
       getAllWorkOrders(params).then((res) => {
@@ -152,8 +133,8 @@ const App: React.FC = () => {
             }
 
             setData(resultSheets);
-            // messageApi.destroy();
-            // isLoading = false;
+            messageApi.destroy();
+            isLoading = false;
           });
         }
       }).catch((res: any) => {
@@ -162,7 +143,7 @@ const App: React.FC = () => {
           content: `获取数据失败: ${res.message}`,
           duration: 5,
         });
-        // isLoading = false;
+        isLoading = false;
       });
     }
     else {
@@ -170,8 +151,8 @@ const App: React.FC = () => {
         if (res.status === 200) {
           res.json().then((json) => {              
             setData(json.data);
-            // messageApi.destroy();
-            // isLoading = false;
+            messageApi.destroy();
+            isLoading = false;
           });
         }
       });
