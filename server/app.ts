@@ -6,6 +6,7 @@ import logger from'morgan';
 import routes from './routes';
 import dotenv from 'dotenv';
 import path from 'node:path';
+import compression from 'compression';
 dotenv.config();
 
 const app = express();
@@ -20,12 +21,13 @@ app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 app.use(cookieParser());
 app.use(express.static('public'));
 app.use(cors());
+app.use(compression());
 
 if(process.env.NODE_ENV === 'production') {
   const filePath = __dirname;
   const assetsPath = path.join(filePath, 'assets');
   console.log(assetsPath);
-  app.use("/assets", express.static(assetsPath));
+  app.use("/assets", express.static(assetsPath, {maxAge: "1d"}));
   app.use("/logo.png", express.static(path.join(filePath, 'logo.png')));
   // 主页路由
   app.get('/', (req, res) => {
