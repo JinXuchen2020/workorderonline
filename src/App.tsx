@@ -176,8 +176,10 @@ const App: React.FC = () => {
       fortuneSheetRef.current?.autoSaveWorkbook(userInfo);
     };
     window.addEventListener('beforeunload', listener);
+    window.addEventListener('pagehide', listener);
     return () => {
-        window.removeEventListener('beforeunload', listener)
+        window.removeEventListener('beforeunload', listener);
+        window.removeEventListener('pagehide', listener);
     }
 }, []);
 
