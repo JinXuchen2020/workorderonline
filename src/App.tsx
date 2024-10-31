@@ -106,16 +106,17 @@ const App: React.FC = () => {
                         const rowData = bookData.filter(c => c.r === j);
                         if(rowData.length > 0) {
                           rowData.forEach(c => {
-                            const rowBorderInfo = bookConfig.borderInfo?.filter(bd=>bd.value?.row_index === c.r)!;
-                            if (rowBorderInfo.length > 0) {
-                              rowBorderInfo.forEach((c: any) => {
-                                c.value.row_index += startRow - 1;
-                                result.config?.borderInfo?.push(c);
-                              })
-                            }
                             c.r += startRow - 1;
                           })
                           originCellData = originCellData.concat(rowData);
+                        }
+                        
+                        const rowBorderInfo = bookConfig.borderInfo?.filter(bd=>bd.value?.row_index === j)!;
+                        if (rowBorderInfo.length > 0) {
+                          rowBorderInfo.forEach((c: any) => {
+                            c.value.row_index += startRow - 1;
+                            result.config?.borderInfo?.push(c);
+                          })
                         }
                       }
                     }
