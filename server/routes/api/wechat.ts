@@ -112,7 +112,7 @@ router.get('/login', async (req : Request, res : Response) => {
   const payload = {
     openid,
     nickname,
-    role: openid === 'oKH006nzFztob-ROaNgL6FPYspQ0' ? 'admin' : 'user',
+    role: openid === process.env.ADMIN_USER_ID ? 'admin' : 'user',
     expires_in
   };
 
