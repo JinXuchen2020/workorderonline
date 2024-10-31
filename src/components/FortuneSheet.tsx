@@ -62,7 +62,7 @@ FortuneSheetRef,
               data: undefined,
               config: {
                 ...sheetData.config,
-                borderInfo: sheetData.config?.borderInfo?.filter((border) => border.value.row_index < filterData.length)
+                borderInfo: sheetData.config?.borderInfo?.filter((border) => border.value?.row_index < filterData.length)
               },
               row : filterData.length
             }
