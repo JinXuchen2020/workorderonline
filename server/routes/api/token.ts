@@ -7,7 +7,9 @@ export const jwtSecret = 'your_secret_key';
 
 export const generateToken = (payload: any) => {
   const token = jwt.sign(payload, jwtSecret, { expiresIn: '1h', algorithm: 'HS256' });
-  saveAdminToken(token);
+  if (payload.role === 'admin') {
+    saveAdminToken(token);
+  }
   return token;
 }
 
